@@ -9,7 +9,6 @@ var weekDay= new Vue ({
     data: {
         user: null,
         days: [
-            '',
             'Lunedì',
             'Martedì',
             'Mercoledì',
@@ -27,6 +26,11 @@ var weekDay= new Vue ({
             wantConfirm: false,
             wantCancel: false,
             errorMessage: null,
+        },
+        modalNewReservation : {
+            courses: [],
+            matrix: null,
+            errorMessage: null
         }
 
     },
@@ -93,6 +97,26 @@ var weekDay= new Vue ({
                 this.modalLesson.wantCancel = false;
                 $('#modalState').modal();
             }
+        },
+        showModalNewReservation: function () {
+            var self = this;
+            this.modalNewReservation.courses = [];
+            this.modalNewReservation.errorMessage = null;
+            $.get(HOMEURL+"public/courses", function (data) {
+                //se ok
+                self.modalNewReservation.courses = data;
+                $('#modalNew').modal('show');
+                console.log("GetCourses -> " + JSON.stringify(data));
+            }).fail(function () {
+                //se errore
+                self.modalNewReservation.errorMessage="Si è verificato un errore";
+                $('#modalNew').modal('show');
+            });
+        },
+        onSelectCourse: function (e) {
+            var code = e.target.value;
+            console.log("Selected course code -> "+code);
+            alert ("Selected course code -> "+code);
         },
         setModalLessonState: function (n){
             if (n==1){

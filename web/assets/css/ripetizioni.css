@@ -1,0 +1,265 @@
+.container {
+    max-width: 1024px;
+  }
+  
+  /*
+   * Custom translucent site header
+   */
+.form-label-group input:not(:placeholder-shown) ~ label {
+  padding-top: .25rem;
+  padding-bottom: .25rem;
+  font-size: 12px;
+  color: #777;
+}
+
+.form-label-group input:-webkit-autofill ~ label {
+  padding-top: .25rem;
+  padding-bottom: .25rem;
+  font-size: 12px;
+  color: #777;
+}
+  .site-header {
+    color: white;
+    top:0;
+  }
+  .site-header a {
+    color: #dfe6f0;
+    transition: ease-in-out color .15s;
+  }
+  .site-header span {
+    color: #dfe6f0;
+  }
+  .site-header a:hover {
+    color: #ebeff5;
+    text-decoration: none;
+  }
+  .navbar {
+    position: fixed;
+    top: 0px;
+    width: 100%;
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+  }
+  .navbar-opaque{
+      background-color: rgb(74, 97, 128);
+	box-shadow: 0px 2px 2px 0px rgb(74, 97, 128,0.4);
+    
+  }
+
+  .footer {
+    background-color: #f1f1f1;
+    color: grey;
+  }
+
+  @media (min-width: 768px) {
+    .nav-item.active {
+      border-bottom:2px solid;
+      font-weight: normal!important;
+    }
+    .nav-link.active {
+      border-bottom:2px solid;
+      font-weight: normal!important;
+    }
+  }
+ 
+  .nav-item.active {
+    font-weight: bold;
+  }
+  .nav-link.active {
+    font-weight: bold;
+  }
+  
+
+  .home-jumbotron-spacer {
+    padding-top: 700px;
+  }
+  
+  .intro-section {
+    position: absolute;
+    top: 0px;
+    background-image: url('../img/hero_2.jpg');
+    background-position: 35% -25px;
+    background-size: cover;
+    margin: 0;
+    width: 100%;  
+   
+  }
+  .slide {
+    padding-top: 50px;
+     color: white;
+     
+   }
+  .slide-section {
+    padding-top: 0.5rem!important;
+    padding-bottom: 0.5rem!important;
+    padding-left: 2.5rem!important;
+    padding-right: 2.5rem!important;
+    margin-top: 1rem!important;
+    margin-bottom: 1rem!important;
+  }
+  @media (min-width: 768px) {
+    .home-jumbotron-spacer {
+      padding-top: 700px;
+    }
+    .intro-section {
+      background-position: 50% -25px;
+    }
+    .slide {
+      padding-top: 100px;
+       color: white;
+       
+     }
+     .slide-section {
+      padding: 3rem!important;
+      margin-top: 3rem!important;
+      margin-bottom: 3rem!important;
+    }
+  }
+
+
+  .intro-bglayer {
+    background-color: rgb(74, 97, 128,0.4);
+    
+  }
+  
+
+  
+
+
+
+  .form-signin {
+    color: #5476bf;
+    width: 100%;
+    max-width: 420px;
+    padding: 15px;
+    padding-top: 30px;
+    padding-bottom: 50px;
+    margin: auto;
+  }
+  
+  .form-label-group {
+    position: relative;
+    margin-bottom: 1rem;
+  }
+  
+  .form-label-group input,
+  .form-label-group label {
+    height: 3.125rem;
+    padding: .75rem;
+  }
+  
+  .form-label-group label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    width: 100%;
+    margin-bottom: 0; /* Override default `<label>` margin */
+    line-height: 1.5;
+    color: #495057;
+    pointer-events: none;
+    cursor: text; /* Match the input under the label */
+    border: 1px solid transparent;
+    border-radius: .25rem;
+    transition: all .1s ease-in-out;
+  }
+  
+  .form-label-group input::-webkit-input-placeholder {
+    color: transparent;
+  }
+  
+  .form-label-group input::-moz-placeholder {
+    color: transparent;
+  }
+  
+  .form-label-group input:-ms-input-placeholder {
+    color: transparent;
+  }
+  
+  .form-label-group input::-ms-input-placeholder {
+    color: transparent;
+  }
+  
+  .form-label-group input::placeholder {
+    color: transparent;
+  }
+  
+  .form-label-group input:not(:-moz-placeholder-shown) {
+    padding-top: 1.25rem;
+    padding-bottom: .25rem;
+  }
+  
+  .form-label-group input:not(:-ms-input-placeholder) {
+    padding-top: 1.25rem;
+    padding-bottom: .25rem;
+  }
+  
+  .form-label-group input:not(:placeholder-shown) {
+    padding-top: 1.25rem;
+    padding-bottom: .25rem;
+  }
+  
+  .form-label-group input:not(:-moz-placeholder-shown) ~ label {
+    padding-top: .25rem;
+    padding-bottom: .25rem;
+    font-size: 12px;
+    color: #777;
+  }
+  
+  .form-label-group input:not(:-ms-input-placeholder) ~ label {
+    padding-top: .25rem;
+    padding-bottom: .25rem;
+    font-size: 12px;
+    color: #777;
+  }
+  
+  .form-label-group input:not(:placeholder-shown) ~ label {
+    padding-top: .25rem;
+    padding-bottom: .25rem;
+    font-size: 12px;
+    color: #777;
+  }
+  
+  .lesson {
+    font-size: 0.8em;
+  }
+.lesson:hover {
+  cursor: pointer;
+}
+
+
+.tbody-fixed{
+    height:400px;
+    overflow-y:auto;
+    width: 100%;
+  }
+
+
+  .fab {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    color:  white;
+    box-shadow: 0px 3px 7px 0px rgba(202, 124, 124, 0.72);
+    font-size: 2em;
+    z-index: 100;
+  }
+  /*
+   * Extra utilities
+   */
+  
+  .flex-equal > * {
+    -ms-flex: 1;
+    flex: 1;
+  }
+  @media (min-width: 768px) {
+    .flex-md-equal > * {
+      -ms-flex: 1;
+      flex: 1;
+    }
+  }
+  
+  .overflow-hidden { overflow: hidden; }
+  

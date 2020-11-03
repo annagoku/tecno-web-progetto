@@ -12,6 +12,10 @@
   color: #777;
 }
 
+.pointer {
+  cursor: pointer;
+}
+
 .form-label-group input:-webkit-autofill ~ label {
   padding-top: .25rem;
   padding-bottom: .25rem;
@@ -226,9 +230,14 @@
     font-size: 0.8em;
   }
 .lesson:hover {
+  color: white!important;
   cursor: pointer;
 }
 
+.lesson.active {
+  color: white!important;
+
+}
 
 .tbody-fixed{
     height:400px;

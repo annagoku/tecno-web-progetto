@@ -15,6 +15,11 @@
     <param-name>DB_PWD</param-name>
     <param-value>ripetizioni</param-value>
   </context-param>
+  <session-config>
+    <session-timeout>
+      20
+    </session-timeout>
+  </session-config>
 
 
 </web-app>

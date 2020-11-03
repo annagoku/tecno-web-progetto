@@ -5,6 +5,7 @@ public class CatalogItem {
   Day day;
   Course course;
   Teacher teacher;
+  boolean selected = false;
 
   public Slot getSlot() {
     return slot;
@@ -36,5 +37,13 @@ public class CatalogItem {
 
   public void setTeacher(Teacher teacher) {
     this.teacher = teacher;
+  }
+
+  public boolean isSelected() {
+    return selected;
+  }
+
+  public void setSelected(boolean selected) {
+    this.selected = selected;
   }
 }

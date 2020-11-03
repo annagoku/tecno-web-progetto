@@ -51,6 +51,28 @@ public class Dao {
 
   public static String UPDATE_LESSON_STATE = "UPDATE LESSONS SET STATECODE=? WHERE ID=?";
 
+  public static String QUERY_COURSE_AVAILABILITY = "select  t.idslot, t.startslot, t.endslot, " +
+          "        t.daycode, t.dayname,\n" +
+          "        t.coursecode, t.coursename, t.icon, t.badgenumber, t.name, t.surname, t.avatar " +
+          "FROM " +
+          "(select  s.idslot, s.startslot, s.endslot, " +
+          "     d.daycode, d.dayname, " +
+          "     c.coursecode, c.coursename, c.icon, t.badgenumber, t.name, t.surname, t.avatar " +
+          "     from slothours s, day d , teacher t, teacher_course tc, course c " +
+          "     where t.badgenumber = tc.badgenumber and tc.coursecode = c.coursecode and t.active = 1 and tc.active = 1 and c.active = 1) t " +
+          "LEFT JOIN " +
+          "    (select l.idslot,l.daycode, l.coursecode, l.badgenumber from lessons l " +
+          "    where statecode in (1,2)) t2 " +
+          "ON t.badgenumber = t2.badgenumber " +
+          "    AND t.daycode = t2.daycode " +
+          "    AND t.idslot = t2.idslot " +
+          "WHERE t2.idslot IS NULL  AND t.coursecode=? " +
+          "ORDER BY t.idslot, t.daycode, t.coursename, t.surname";
+
+
+
+
+
   boolean initialized = false;
   String url;
   String user;
@@ -139,6 +161,39 @@ public class Dao {
     }
     return list;
   }
+
+  public  ArrayList<CatalogItem> getCatalogFiltered(String courseCode) throws SQLException {
+    checkInit();
+    Connection conn = null;
+    ArrayList<CatalogItem> list = new ArrayList<>();
+    try {
+      conn = getConnection();
+
+      PreparedStatement ps= conn.prepareStatement(QUERY_COURSE_AVAILABILITY);
+      ps.setString(1, courseCode);
+      ResultSet rs=ps.executeQuery();
+      while (rs.next()) {
+        CatalogItem c = new CatalogItem();
+        c.setDay(new Day(rs.getInt("daycode"), rs.getString("dayname")));
+        c.setCourse( new Course(rs.getString("coursecode"),rs.getString("coursename"), rs.getString("icon")));
+        c.setSlot(new Slot(rs.getInt("idslot"), rs.getString("startslot"), rs.getString("endslot")));
+        c.setTeacher(new Teacher(rs.getString("badgenumber"), rs.getString("name"), rs.getString("surname"), rs.getString("avatar")));
+        list.add(c);
+      }
+      rs.close();
+
+    }
+    finally {
+      safeCloseConnection(conn);
+    }
+    return list;
+  }
+
+
+
+
+
+
 
 //Lettura da DB degli insegnanti e dei corsi associati
   public  ArrayList<Teacher> getTeacherDB() throws SQLException {

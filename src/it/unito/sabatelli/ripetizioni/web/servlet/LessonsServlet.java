@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -75,15 +76,21 @@ public class LessonsServlet extends HttpServlet {
         Dao dao = (Dao) request.getServletContext().getAttribute(Dao.DAONAME);
 
         List<Lesson> lessons= dao.loadLesson(user.getId(), user.getRole());
+        ArrayList[][] matrixLesson = new ArrayList[4][5];
+        for(int i=0; i< matrixLesson.length; i++) {
+          for(int j=0; j<matrixLesson[i].length; j++) {
+            matrixLesson[i][j] = new ArrayList();
+          }
+        }
 
         if(!user.getRole().equalsIgnoreCase("administrator")) {
           //todo leggere le dimensioni da DB
-          Lesson[][] matrix = new Lesson[4][5];
+
 
           for (Lesson l: lessons) {
-            matrix[l.getSlot().getId()-1][l.getDay().getDaycode()-1] = l;
+            matrixLesson[l.getSlot().getId()-1][l.getDay().getDaycode()-1].add(l);
           }
-          String json = gson.toJson(matrix);
+          String json = gson.toJson(matrixLesson);
           response.getWriter().write(json);
           response.setStatus(HttpServletResponse.SC_OK);
 

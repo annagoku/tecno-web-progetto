@@ -49,6 +49,16 @@ public class Dao {
           "AND LESSONS.BADGENUMBER=TEACHER.BADGENUMBER AND LESSONS.IDSLOT=SLOTHOURS.IDSLOT " +
           "AND LESSONS.DAYCODE = day.daycode and lessons.statecode = lesson_state.code and USER.IDUSER = ?";
 
+  public static String QUERY_CHECKLESSON = "SELECT LESSONS.id, SLOTHOURS.idslot, " +
+          "       SLOTHOURS.startslot, SLOTHOURS.endslot, DAY.daycode, DAY.dayname, " +
+          "       COURSE.coursecode, COURSE.coursename,"+
+          "       LESSONS.statecode, lesson_state.name as state_text " +
+          "FROM (USER JOIN LESSONS JOIN COURSE JOIN SLOTHOURS JOIN DAY JOIN LESSON_STATE) " +
+          "WHERE LESSONS.IDUSER=USER.IDUSER AND LESSONS.COURSECODE=COURSE.COURSECODE " +
+          "AND LESSONS.IDSLOT=SLOTHOURS.IDSLOT " +
+          "AND LESSONS.DAYCODE = day.daycode and lessons.statecode = lesson_state.code and USER.IDUSER = ? AND SLOTHOURS.idslot=? "+
+          "AND DAY.daycode = ? AND LESSONS.statecode in (1,2)";
+
   public static String UPDATE_LESSON_STATE = "UPDATE LESSONS SET STATECODE=? WHERE ID=?";
 
   public static String QUERY_COURSE_AVAILABILITY = "select  t.idslot, t.startslot, t.endslot, " +
@@ -69,7 +79,7 @@ public class Dao {
           "WHERE t2.idslot IS NULL  AND t.coursecode=? " +
           "ORDER BY t.idslot, t.daycode, t.coursename, t.surname";
 
-
+public static String INSERT_NEW_LESSON = "INSERT INTO LESSONS (IDUSER, COURSECODE, BADGENUMBER, IDSLOT, DAYCODE, STATECODE) VALUES (?,?,?,?,?, 1)";
 
 
 
@@ -281,7 +291,53 @@ public class Dao {
     return user;
 
   }
+  public Lesson checkLesson (String iduser, int daycode, int slotid) throws Exception {
+    checkInit();
+    Connection conn = null;
+    Lesson l = null;
+    ResultSet rs = null;
+    try {
+      conn = getConnection();
+      if (conn != null) {
+        System.out.println("Connected to the database test");
+      }
 
+      PreparedStatement ps = conn.prepareStatement(QUERY_CHECKLESSON);
+      ps.setInt(1, Integer.parseInt(iduser));
+      ps.setInt(2, slotid);
+      ps.setInt(3, daycode);
+
+      rs = ps.executeQuery();
+
+
+      boolean found = false;
+      while (rs.next()) {
+        if(found) {
+          throw new Exception("Errore lezioni duplicate");
+        }
+        l = new Lesson();
+        l.setId(rs.getInt("id"));
+        l.setDay(new Day(rs.getInt("daycode"), rs.getString("dayname")));
+        l.setSlot(new Slot(rs.getInt("idslot"), rs.getString("startslot"), rs.getString("endslot")));
+        l.setCourse(new Course(rs.getString("coursecode"), rs.getString("coursename"), null));
+        l.setState(new LessonState(rs.getInt("statecode"), rs.getString("state_text")));
+        found = true;
+      }
+      rs.close();
+
+
+    }finally {
+      if(rs != null) {
+        try {
+          rs.close();
+        }catch (SQLException e) {
+          e.printStackTrace();
+        }
+      }
+      safeCloseConnection(conn);
+    }
+    return l;
+  }
   //Caricamento delle lezioni di un user
   public ArrayList<Lesson> loadLesson (String iduser, String role) throws SQLException {
     checkInit();
@@ -355,6 +411,46 @@ public class Dao {
     }
   }
 
+  public int saveNewReservation(CatalogItem item, User user, Lesson lessonToCancel) throws  SQLException {
+    checkInit();
+    Connection conn = null;
+    try {
+      conn = getConnection();
+      conn.setAutoCommit(false);
+
+      if(lessonToCancel!= null) {
+        PreparedStatement ps = conn.prepareStatement(UPDATE_LESSON_STATE);
+        ps.setInt(1, 3);
+        ps.setInt(2, lessonToCancel.getId());
+
+        int r = ps.executeUpdate();
+        System.out.println("saveNewReservation - Lesson to cancel "+lessonToCancel.getId()+" row updated "+r);
+      }
+
+      PreparedStatement ps = conn.prepareStatement(INSERT_NEW_LESSON);
+      ps.setInt(1, Integer.parseInt(user.getId()));
+      ps.setString(2, item.getCourse().getCode() );
+      ps.setString(3, item.getTeacher().getBadge());
+      ps.setInt(4, item.getSlot().getId());
+      ps.setInt(5, item.getDay().getDaycode());
+
+      int rows = ps.executeUpdate();
+      conn.commit();
+      System.out.println("saveNewReservation - row inserted "+rows);
+
+      return rows;
+
+    }catch (SQLException e) {
+      System.out.println("Error "+e.getMessage()+" rolling back");
+      conn.rollback();
+      throw  e;
+    }
+    finally {
+      safeCloseConnection(conn);
+    }
+
   }
+
+}
 
 

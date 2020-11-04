@@ -64,24 +64,28 @@
       <div>
       <table class="table table-striped table-bordered">
         <thead>
-          <tr >
-          <th style="width: 10%" scope="col"> </th>
+        <tr >
+          <th style="width: 10%" scope="col" > </th>
           <th style="width: 10%" scope="col" v-for="d in days">{{d}}</th>
-          </tr>
+        </tr>
 
         </thead>
 
         <tbody >
-            <tr v-for="(h, i) in hours">
-              <th scope="row">{{h.startHour}}</th>
+        <tr v-for="(hour, h) in hours">
+          <th scope="row">{{hour.startHour}}</th>
 
-              <td v-for="(lessonArray, j) in lessonsMatrix[i]">
-                <div v-if="lessonsMatrix[i][j]" v-on:click="showModalLesson(i,j)"  v-bind:class="'card lesson '+lessonClass(lessonsMatrix[i][j].state.code) " >
-                  <span><i v-bind:class="''+lessonIcon(lessonsMatrix[i][j].state.code)"></i>
-                    {{lessonsMatrix[i][j].course.name}} - {{lessonsMatrix[i][j].teacher.name}} {{lessonsMatrix[i][j].teacher.surname}}
+          <td v-for="(day, l) in days">
+              <template v-if="lessonsMatrix">
+                <template v-if="lessonsMatrix[h][l]">
+                <div   v-on:click="showModalLesson(k)" v-for="k in lessonsMatrix[h][l]"  v-bind:class="'card lesson my-1 '+lessonClass(k.state.code) " >
+                  <span><i v-bind:class="''+lessonIcon(k.state.code)"></i>
+                    {{k.course.name}} - {{k.teacher.name}} {{k.teacher.surname}}
                   </span>
                 </div>
-              </td>
+                </template>
+              </template>
+          </td>
 
           </tr>
          </tbody>
@@ -96,7 +100,7 @@
 
    <!-- Modal cambio stato prenotazioni  -->
 
-   <div class="modal" id="modalState" tabindex="-1" role="dialog">
+   <div data-keyboard="false" data-backdrop="static" class="modal" id="modalState" tabindex="-1" role="dialog">
      <div class="modal-dialog" role="document">
        <div class="modal-content">
          <div class="modal-header">
@@ -160,7 +164,7 @@
 
 
      <!-- Modal fab button aggiungi prenotazioni-->
-<div class="modal fade" id="modalNew" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" href="#modal" aria-hidden="true">
+<div class="modal fade" data-keyboard="false" data-backdrop="static" id="modalNew" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" href="#modal" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -198,12 +202,9 @@
                       <div v-on:click="clickReservation(c)" v-for="c in modalNewReservation.matrix[k][l]" v-bind:class="{active : c.selected}" class="card lesson btn btn-primary text-primary bg-outline-primary text-center my-1" >
                         {{c.teacher.name}} {{c.teacher.surname}}
                       </div>
-
                     </template>
                   </template>
-
                 </td>
-
               </tr>
             </tbody>
           </table>
@@ -212,25 +213,49 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Annulla</button>
-        <button type="button" v-if="!modalNewReservation.errorMessage" class="btn btn-primary" v-on:click="saveNewReservation()">Prenota</button>
+        <button type="button" v-if="!modalNewReservation.errorMessage" class="btn btn-primary" v-on:click="checkFeasibilityNewReservation()">Prenota</button>
       </div>
     </div>
   </div>
 </div>
 
 
+     <!-- Modal controlla fattibilità prenotazioni  -->
+ <div class="modal" id="modalCheckFeasibility" tabindex="-1" data-keyboard="false" data-backdrop="static">
+   <div class="modal-dialog">
+     <div class="modal-content">
+       <div class="modal-header">
+         <h5 class="modal-title">Attenzione:</h5>
+         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+           <span aria-hidden="true">&times;</span>
+         </button>
+       </div>
+       <div class="modal-body">
+         <p>{{modalCheckReservation.feedbackMessage}}</p>
+       </div>
+       <div class="modal-footer">
+         <button type="button" class="btn btn-secondary" data-dismiss="modal" onClick="$('#modalNew').modal('show');">Chiudi</button>
+         <template v-if="modalCheckReservation.state==1">
+            <button type="button" class="btn btn-primary" v-on:click="saveNewReservation()">Procedi</button>
+         </template>
+       </div>
+     </div>
+   </div>
+ </div>
+
 
    </div>
 
 
-
-
-
+   <!-- Footer area riservata  -->
    <footer style="position: fixed; bottom: 0;" class="container-fluid py-5 footer w-100">
   <div class="row">
     <div class="col text-center">
       <p>&copy; 2020 - Annalisa Sabatelli</p>
       <p>Teachers' icons from: https://roundicons.com</p>
+      <span>
+        <p>Contatti:  <a href="mailto:help.administrator@ripetizioni.com">help.administrator@ripetizioni.com</a></p>
+      </span>
     </div>
       </div>
 </footer>

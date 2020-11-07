@@ -13,13 +13,14 @@ var courses = new Vue({
     methods: {
         getCourses: function () {
             var self = this;
-            $.get(this.link, function (data) {
+
+            $.get(SERVERURL+'public/courses?filter=home', function (data) {
                 //se ok
                 self.courses = data;
                 console.log("GetCourses -> " + JSON.stringify(data));
-            }).fail(function () {
+            }).fail(function (xhr) {
                 //se errore
-                alert("Si è verificato un errore!!!");
+                alert("Errore caricamento corsi -> status " + xhr.status);
             });
         }
     }
@@ -40,13 +41,13 @@ var teachers = new Vue({
     methods: {
         getTeachers: function () {
             var self = this;
-            $.get(this.link, function (data) {
+            $.get(SERVERURL+'public/teachers?filter=home', function (data) {
                 //se ok
                 self.teachers = data;
                 console.log("GetTeachers -> " + JSON.stringify(data));
-            }).fail(function () {
+            }).fail(function (xhr) {
                 //se errore
-                alert("Si è verificato un errore!!!");
+                alert("Si è verificato un errore ->" + xhr.status);
             });
         }
     }

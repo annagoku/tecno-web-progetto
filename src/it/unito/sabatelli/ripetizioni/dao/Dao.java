@@ -11,6 +11,13 @@ public class Dao {
 
   public static String DAONAME = "DAO";
 
+  public static String  QUERY_COURSE_INDEX="SELECT COURSECODE, COURSENAME, ICON FROM COURSE WHERE active = 1";
+  public static String  QUERY_COURSE_ADMIN="SELECT COURSECODE, COURSENAME, ICON, ACTIVE FROM COURSE";
+  public static String QUERY_TEACHER_ADMIN="SELECT t.BADGENUMBER, t.NAME, t.SURNAME, t.AVATAR, t.ACTIVE FROM TEACHER t";
+  public static String QUERY_TEACHER_INDEX="SELECT t.BADGENUMBER, t.NAME, t.SURNAME, t.AVATAR FROM TEACHER t WHERE ACTIVE=1";
+  public static String QUERY_TEACHER_COURSE_ADMIN="SELECT tc.ID, t.BADGENUMBER, t.NAME, t.SURNAME, tc.COURSECODE, c.COURSENAME, tc.ACTIVE "+
+                            "FROM TEACHER_COURSE tc, TEACHER t, COURSE c WHERE tc.BADGENUMBER=t.BADGENUMBER AND tc.COURSECODE=c.COURSECODE";
+
   public static String QUERY_LESSONS_ADMIN = "SELECT LESSONS.id, SLOTHOURS.idslot, " +
           "       SLOTHOURS.startslot, SLOTHOURS.endslot, DAY.daycode, DAY.dayname, USER.iduser, USER.username,  USER.name, USER.surname,  USER.email, " +
           "       COURSE.coursecode, COURSE.coursename, COURSE.icon as courseicon, " +
@@ -122,7 +129,7 @@ public static String INSERT_NEW_LESSON = "INSERT INTO LESSONS (IDUSER, COURSECOD
   }
 
 // Lettura da DB dei corsi
-  public  ArrayList<Course> getCourseDB() throws SQLException{
+  public  ArrayList<Course> getCourseDB(boolean isAdmin) throws SQLException{
     checkInit();
     Connection conn1 = null;
     ArrayList<Course> out = new ArrayList<>();
@@ -131,21 +138,32 @@ public static String INSERT_NEW_LESSON = "INSERT INTO LESSONS (IDUSER, COURSECOD
       if (conn1 != null) {
         System.out.println("Connected to the database test");
       }
-
       Statement st = conn1.createStatement();
-      ResultSet rs = st.executeQuery("SELECT * FROM COURSE WHERE active = 1");
-      while (rs.next()) {
-        Course c = new Course(rs.getString("coursecode"),rs.getString("coursename"), rs.getString("icon"));
-        out.add(c);
+      if (!isAdmin) {
+        ResultSet rs = st.executeQuery(QUERY_COURSE_INDEX);
+        while (rs.next()) {
+          Course c = new Course(rs.getString("coursecode"), rs.getString("coursename"), rs.getString("icon"));
+          out.add(c);
+        }
+        rs.close();
       }
-      rs.close();
-
+      else if(isAdmin){
+        ResultSet rs = st.executeQuery(QUERY_COURSE_ADMIN);
+        while (rs.next()) {
+          Course c = new Course(rs.getString("coursecode"), rs.getString("coursename"), rs.getString("icon"));
+          c.bindState(rs.getInt("active"));
+          out.add(c);
+        }
+        rs.close();
+      }
     }
     finally {
       safeCloseConnection(conn1);
     }
     return out;
   }
+
+
   public  ArrayList<CatalogItem> getCatalog() throws SQLException {
     checkInit();
     Connection conn = null;
@@ -199,14 +217,8 @@ public static String INSERT_NEW_LESSON = "INSERT INTO LESSONS (IDUSER, COURSECOD
     return list;
   }
 
-
-
-
-
-
-
 //Lettura da DB degli insegnanti e dei corsi associati
-  public  ArrayList<Teacher> getTeacherDB() throws SQLException {
+  public  ArrayList<Teacher> getTeacherDB(boolean isAdmin) throws SQLException {
     checkInit();
     Connection conn1 = null;
     ArrayList<Teacher> out = new ArrayList<>();
@@ -217,23 +229,33 @@ public static String INSERT_NEW_LESSON = "INSERT INTO LESSONS (IDUSER, COURSECOD
       }
 
       Statement st = conn1.createStatement();
-      ResultSet rs1 = st.executeQuery("SELECT * FROM TEACHER WHERE active = 1");
-      while (rs1.next()) {
-        Teacher t = new Teacher(rs1.getString("badgenumber"),rs1.getString("name"), rs1.getString("surname"),rs1.getString("avatar"));
-        out.add(t);
-      }
-      rs1.close();
-      for (Teacher th: out){
-        String sql= "SELECT COURSE.COURSECODE, COURSE.COURSENAME, COURSE.ICON FROM (COURSE JOIN TEACHER_COURSE JOIN TEACHER)  " +
-                "WHERE TEACHER_COURSE.active = 1 AND COURSE.active = 1 AND TEACHER.active = 1 AND COURSE.COURSECODE=TEACHER_COURSE.COURSECODE AND TEACHER.BADGENUMBER=TEACHER_COURSE.BADGENUMBER AND TEACHER.BADGENUMBER= ?";
-         PreparedStatement ps= conn1.prepareStatement(sql);
-         ps.setString(1,th.getBadge());
-         ResultSet rs2=ps.executeQuery();
-        while (rs2.next()) {
-          th.addCourseTeached(new Course (rs2.getString("coursecode"), rs2.getString("coursename"), rs2.getString("icon")));
+      if (!isAdmin) {
+        ResultSet rs1 = st.executeQuery(QUERY_TEACHER_INDEX);
+        while (rs1.next()) {
+          Teacher t = new Teacher(rs1.getString("badgenumber"), rs1.getString("name"), rs1.getString("surname"), rs1.getString("avatar"));
+          out.add(t);
         }
-        rs2.close();
-      }
+        rs1.close();
+        for (Teacher th : out) {
+          String sql = "SELECT COURSE.COURSECODE, COURSE.COURSENAME, COURSE.ICON FROM (COURSE JOIN TEACHER_COURSE JOIN TEACHER)  " +
+                  "WHERE TEACHER_COURSE.active = 1 AND COURSE.active = 1 AND TEACHER.active = 1 AND COURSE.COURSECODE=TEACHER_COURSE.COURSECODE AND TEACHER.BADGENUMBER=TEACHER_COURSE.BADGENUMBER AND TEACHER.BADGENUMBER= ?";
+          PreparedStatement ps = conn1.prepareStatement(sql);
+          ps.setString(1, th.getBadge());
+          ResultSet rs2 = ps.executeQuery();
+          while (rs2.next()) {
+            th.addCourseTeached(new Course(rs2.getString("coursecode"), rs2.getString("coursename"), rs2.getString("icon")));
+          }
+          rs2.close();
+        }
+      }else{
+        ResultSet rs1 = st.executeQuery(QUERY_TEACHER_ADMIN);
+        while (rs1.next()) {
+          Teacher t = new Teacher(rs1.getString("badgenumber"), rs1.getString("name"), rs1.getString("surname"), rs1.getString("avatar"));
+          t.bindState(rs1.getInt("active"));
+          out.add(t);
+        }
+        rs1.close();
+        }
     }
     finally {
       safeCloseConnection(conn1);
@@ -256,7 +278,7 @@ public static String INSERT_NEW_LESSON = "INSERT INTO LESSONS (IDUSER, COURSECOD
       }
 
       String psw= Utility.getMd5(password);
-      String sql="SELECT iduser, username, password, name, surname, email  FROM USER WHERE USERNAME=? AND PASSWORD=?";
+      String sql="SELECT iduser, username, name, surname, email  FROM USER WHERE USERNAME=? AND PASSWORD=?";
       PreparedStatement ps= conn1.prepareStatement(sql);
       ps.setString(1, username);
       ps.setString(2, psw);
@@ -264,7 +286,7 @@ public static String INSERT_NEW_LESSON = "INSERT INTO LESSONS (IDUSER, COURSECOD
 
 
       while (rs3.next()) {
-        user = new User(rs3.getString("iduser"), rs3.getString("username"), rs3.getString("password"), rs3.getString("name"), rs3.getString("surname"), rs3.getString("email"));
+        user = new User(rs3.getString("iduser"), rs3.getString("username"), rs3.getString("name"), rs3.getString("surname"), rs3.getString("email"));
       }
 
       rs3.close();
@@ -449,6 +471,29 @@ public static String INSERT_NEW_LESSON = "INSERT INTO LESSONS (IDUSER, COURSECOD
       safeCloseConnection(conn);
     }
 
+  }
+
+  // Query admin per leggere le associazioni corsi e insegnanti
+  public ArrayList<TeacherCourse> getTeacherCourseList() throws SQLException {
+    checkInit();
+    Connection conn = null;
+    ArrayList<TeacherCourse> listTC = new ArrayList<>();
+    try {
+      conn = getConnection();
+
+      Statement st = conn.createStatement();
+      ResultSet rs = st.executeQuery(QUERY_TEACHER_COURSE_ADMIN);
+      while (rs.next()) {
+        TeacherCourse tc = new TeacherCourse(rs.getInt("id"), rs.getString("badgenumber"), rs.getString("name"), rs.getString("surname"), rs.getString("coursecode"), rs.getString("coursename"));
+        tc.bindState(rs.getInt("active"));
+        listTC.add(tc);
+      }
+      rs.close();
+
+    } finally {
+      safeCloseConnection(conn);
+    }
+    return listTC;
   }
 
 }

@@ -7,6 +7,8 @@ public class Teacher {
   private String name;
   private String surname;
   private String avatar;
+  private String state;
+  private int statecode;
   private ArrayList<Course> courseTeached =new ArrayList<>();
 
   public Teacher (){
@@ -26,6 +28,23 @@ public class Teacher {
 
   public void setAvatar(String avatar) {
     this.avatar = avatar;
+  }
+
+  public void bindState(int state) {
+    this.statecode = state;
+    if(state==1){
+      this.state="in servizio";
+    }else {
+      this.state="non in servizio";
+    }
+  }
+
+  public void setState(String state) {
+    this.state = state;
+  }
+
+  public String getState() {
+    return state;
   }
 
   public String getBadge() {

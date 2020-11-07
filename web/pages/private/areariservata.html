@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
-    <meta name="author" content="Annalis Sabatelli">
+    <meta name="author" content="Annalisa Sabatelli">
     
     <title>Ripetizioni</title>
 
@@ -41,7 +41,7 @@
   <body>
    <div id="app">
 
-      <nav id="navbar" class="navbar navbar-expand-md sticky-top py-1 site-header navbar-opaque">
+      <nav id="navbar" style="z-index:2000" class="navbar navbar-expand-md sticky-top py-1 site-header navbar-opaque">
         <a class="navbar-brand" href="#"><i class="fas fa-book-reader mx-2"></i> Ripetizioni</a>
         
         <ul  class="navbar-nav ml-auto mx-2">
@@ -56,10 +56,13 @@
           
         </ul>
       </nav>
-<div class="py-4"></div>
-<!-- MAIN -->
-<div id="main" class="w-100 my-md-3 pl-md-3 ">
-    <div v-if="(user.role == 'student')"  class="cointainer mx-2 text-center">
+
+  <!-- Area riservata studente  -->
+  <template v-if="(user.role == 'student')" >
+    <div class="py-4"></div>
+    <!-- MAIN -->
+    <div id="main" class="w-100 my-md-3 pl-md-3 ">
+      <div  class="cointainer mx-2 text-center">
       <h1>La mia settimana</h1>
       <div>
       <table class="table table-striped table-bordered">
@@ -92,11 +95,183 @@
       </table>
         <div><button type="button" class="btn btn-primary" v-on:click="showCatalog()">Visualizza lezioni disponibili</button></div>
       </div>
-    </div>
-  
-</div>
 
-<div id="plus" class="bg-primary  p-3 fab rounded-circle" v-on:click="showModalNewReservation()"><i class="fas fa-plus"></i></div>
+      <div id="plus" class="bg-primary  p-3 fab rounded-circle" v-on:click="showModalNewReservation()"><i class="fas fa-plus"></i></div>
+    </div>
+    </div>
+  </template>
+  <!-- Area riservata amministratore  -->
+    <template v-if="(user.role == 'administrator')">
+      <nav style="z-index:1500; padding-top: 3.5rem!important" class="sticky-top  bg-white">
+        <ul class="nav nav-tabs" id="nav-tab" role="tablist">
+          <li class="nav-item"><a class="nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-courses" role="tab" aria-controls="nav-home" aria-selected="true">Corsi</a></li>
+          <li class="nav-item"><a class="nav-link" id="nav-profile-tab" data-toggle="tab" href="#nav-teachers" role="tab" aria-controls="nav-profile" aria-selected="false" @click="getTeachersAdmin()">Insegnanti</a></li>
+          <li class="nav-item"><a class="nav-link" id="nav-courseteacher-tab" data-toggle="tab" href="#nav-courseteacher" role="tab" aria-controls="nav-contact" aria-selected="false" @click="getAssociationsAdmin()">Corsi e Insegnanti</a></li>
+          <li class="nav-item"><a class="nav-link" id="nav-reservation-tab" data-toggle="tab" href="#nav-reservation" role="tab" aria-controls="nav-contact" aria-selected="false" @click="getLessonAdmin()">Lista Prenotazioni studenti</a></li>
+        </ul>
+      </nav>
+      <div id="main" class="w-100 my-md-3 pl-md-3 ">
+
+      <div    class="cointainer mx-2 text-center">
+
+      <div class="tab-content" id="nav-tabContent">
+        <!-- COURSES ADMIN-->
+        <div class="tab-pane fade show active" id="nav-courses" role="tabpanel" aria-labelledby="nav-home-tab">
+          <div id="start-change" class="w-100 my-md-3 pl-md-3 ">
+            <div class="cointainer mx-auto text-center">
+              <div class="form-group text-left col-sm-6 col-lg-3">
+                <span><label for="formGroupMateria">Filtra per Materia</label><select class="form-control text-left" id="listamaterie">
+                  <option value="-">Scegli la materia</option>
+                  <option>mat</option>
+                </select></span>
+              </div>
+              <table  class="table table-hover  table-bordered  table-sm">
+                <thead>
+                <tr>
+                  <th style="width: 10%"  scope="col">Cod.Corso</th>
+                  <th style="width: 10%"  scope="col">Materia</th>
+                  <th style="width: 10%" scope="col">Icona</th>
+                  <th style="width: 10%"  scope="col">Stato</th>
+                  <th style="width: 10%"  scope="col"><i class="fas fa-sync-alt text-primary"></i> </th>
+
+                </tr>
+                </thead>
+                <tbody>
+                <tr  v-if="(courseAdmin.length > 0)" v-for="c in courseAdmin">
+                  <td class="align-middle">{{c.code}}</td>
+                  <td class="align-middle">{{c.name}}</td>
+                  <td class="align-middle"><code class="text-primary">{{c.icon}}</code> <i v-bind:class="c.icon"></i></td>
+                  <td class="align-middle">{{c.state}}</td>
+                  <td class="align-middle"><button v-if="(c.statecode == 1)" type="button" class="btn btn-warning btn-sm"><i class="fas fa-trash-alt"></i></button></td>
+                </tr>
+                <tr v-if="(courseAdmin.length == 0)">
+                  <td colspan="5" class="text-center">Nessun insegnante presente</td>
+                </tr>
+
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div id="plusCourse" class="bg-primary  p-3 fab rounded-circle"><i class="fas fa-plus"></i></div>
+        </div>
+        <!-- TEACHERS  ADMIN-->
+        <div class="tab-pane fade" id="nav-teachers" role="tabpanel" aria-labelledby="nav-profile-tab">
+          <div class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3 ">
+            <div id="teachers" class="cointainer mx-auto text-center">
+              <h1>Insegnanti</h1>
+              <table  class="table table-striped table table-bordered table table-sm ">
+                <thead>
+                <tr>
+                  <th style="width: 10%"  scope="col">Badge</th>
+                  <th style="width: 10%"  scope="col">Nome</th>
+                  <th style="width: 10%" scope="col">Cognome</th>
+                  <th style="width: 20%"  scope="col">Avatar</th>
+                  <th style="width: 10%"  scope="col">Stato</th>
+                  <th style="width: 10%"  scope="col"><i class="fas fa-sync-alt text-primary"></i> </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-if="(teacherAdmin.length > 0)" v-for="t in teacherAdmin">
+                  <td class="align-middle">{{t.badge}}</td>
+                  <td class="align-middle">{{t.name}}</td>
+                  <td class="align-middle">{{t.surname}}</td>
+                  <td class="align-middle">{{t.avatar}}  <img style="zoom: 50%" v-bind:src="('../'+t.avatar)"></td>
+                  <td class="align-middle">{{t.state}}</td>
+                  <td class="align-middle"><button v-if="(t.statecode == 1)" type="button" class="btn btn-warning btn-sm"><i class="fas fa-trash-alt"></i></button></td>
+                </tr>
+                <tr v-if="(teacherAdmin.length == 0)">
+                  <td colspan="6" class="text-center">Nessun insegnante presente</td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div id="plusTeacher" class="bg-primary  p-3 fab rounded-circle"><i class="fas fa-plus"></i></div>
+        </div>
+        <!-- COURSES & TEACHERS ADMIN -->
+        <div class="tab-pane fade" id="nav-courseteacher" role="tabpanel" aria-labelledby="nav-contact-tab">
+          <div class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3 ">
+            <div id="courses&teachers" class="cointainer mx-auto text-center">
+              <h1>Corsi e Insegnanti</h1>
+              <table  class="table table-striped table table-bordered table table-sm ">
+                <thead>
+                <tr>
+                  <th style="width: 10%"  scope="col">ID</th>
+                  <th style="width: 10%"  scope="col">Badge</th>
+                  <th style="width: 10%"  scope="col">Nome</th>
+                  <th style="width: 10%" scope="col">Cognome</th>
+                  <th style="width: 10%" scope="col">Cod.Corso</th>
+                  <th style="width: 10%"  scope="col">Corso</th>
+                  <th style="width: 10%"  scope="col">Stato</th>
+                  <th style="width: 10%"  scope="col"><i class="fas fa-sync-alt text-primary"></i> </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-if="(associationsAdmin.length > 0)" v-for="tc in associationsAdmin">
+                  <td class="align-middle">{{tc.id}}</td>
+                  <td class="align-middle">{{tc.badge}}</td>
+                  <td class="align-middle">{{tc.name}}</td>
+                  <td class="align-middle">{{tc.surname}}</td>
+                  <td class="align-middle">{{tc.courseCode}}</td>
+                  <td class="align-middle">{{tc.courseName}}</td>
+                  <td class="align-middle">{{tc.state}}</td>
+                  <td class="align-middle"><button v-if="(tc.statecode == 1)" type="button" class="btn btn-warning btn-sm"><i class="fas fa-trash-alt"></i></button></td>
+                </tr>
+                <tr v-if="(associationsAdmin.length == 0)">
+                  <td colspan="7" class="text-center">Nessuna associazione presente</td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div id="plusTeacherCourse" class="bg-primary  p-3 fab rounded-circle"><i class="fas fa-plus"></i></div>
+        </div>
+        <!-- LISTA PRENOTAZIONI ADMIN-->
+        <div class="tab-pane fade" id="nav-reservation" role="tabpanel" aria-labelledby="nav-contact-tab">
+          <div class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3 ">
+            <div id="reservationList" class="cointainer mx-auto text-center">
+              <h1>Lista prenotazioni</h1>
+              <table  class="table table-striped table table-bordered table table-sm">
+                <thead>
+                <tr>
+                  <th style="width: 10%"  scope="col">Cod. prenotazione</th>
+                  <th style="width: 10%" scope="col">Ora</th>
+                  <th style="width: 10%" scope="col">Giorno</th>
+                  <th style="width: 10%"  scope="col">Username studente</th>
+                  <th style="width: 10%" scope="col">Cod.Corso</th>
+                  <th style="width: 10%"  scope="col">Corso</th>
+                  <th style="width: 10%" scope="col">Nome Insegnante</th>
+                  <th style="width: 10%" scope="col">Cognome Insegnate</th>
+                  <th style="width: 10%"  scope="col">Stato</th>
+                  <th style="width: 10%"  scope="col"><i class="fas fa-sync-alt text-primary"></i> </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-if="(lessonsAdmin.length > 0)" v-for="l in lessonsAdmin" >
+                  <td class="align-middle">{{l.id}}</td>
+                  <td class="align-middle">{{l.slot.startHour}}-{{l.slot.endHour}}</td>
+                  <td class="align-middle">{{l.day.dayname}}</td>
+                  <td class="align-middle">{{l.user.username}}</td>
+                  <td class="align-middle">{{l.course.code}}</td>
+                  <td class="align-middle">{{l.course.name}}</td>
+                  <td class="align-middle">{{l.teacher.name}}</td>
+                  <td class="align-middle">{{l.teacher.surname}}</td>
+                  <td class="align-middle">{{l.state.name}}</td>
+                  <th style="width: 10%"  scope="col"><i class="fas fa-sync-alt text-primary"></i> </th>
+                </tr>
+                <tr v-if="(lessonsAdmin.length == 0)">
+                  <td colspan="10" class="text-center">Nessuna prenotazione presente</td>
+                </tr>
+
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div></div></template>
+
 
    <!-- Modal cambio stato prenotazioni  -->
 
@@ -243,22 +418,22 @@
    </div>
  </div>
 
-
+     <!-- Footer area riservata -->
+     <footer v-if="(user.role == 'student')" class="container-fluid py-5 footer w-100">
+       <div class="row">
+         <div class="col text-center">
+           <p>&copy; 2020 - Annalisa Sabatelli</p>
+           <p>Teachers' icons from: https://roundicons.com</p>
+           <span>
+        <p>Contatti:  <a href="mailto:help.administrator@ripetizioni.com">help.administrator@ripetizioni.com</a></p>
+      </span>
+         </div>
+       </div>
+     </footer>
    </div>
 
 
-   <!-- Footer area riservata  -->
-   <footer style="position: fixed; bottom: 0;" class="container-fluid py-5 footer w-100">
-  <div class="row">
-    <div class="col text-center">
-      <p>&copy; 2020 - Annalisa Sabatelli</p>
-      <p>Teachers' icons from: https://roundicons.com</p>
-      <span>
-        <p>Contatti:  <a href="mailto:help.administrator@ripetizioni.com">help.administrator@ripetizioni.com</a></p>
-      </span>
-    </div>
-      </div>
-</footer>
+
 
 </body>
 

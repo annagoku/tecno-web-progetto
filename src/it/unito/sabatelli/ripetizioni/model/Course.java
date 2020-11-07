@@ -4,6 +4,8 @@ public class Course {
   private String code;
   private String name;
   private String icon;
+  private String state;
+  private int statecode;
 
   public Course() {
 
@@ -13,6 +15,23 @@ public class Course {
     this.code = code;
     this.name = name;
     this.icon = icon;
+  }
+
+  public void bindState(int state) {
+    this.statecode = state;
+    if(state==1){
+      this.state="attivo";
+    }else {
+      this.state="non attivo";
+    }
+  }
+
+  public void setState(String state) {
+    this.state = state;
+  }
+
+  public String getState() {
+    return state;
   }
 
   public String getCode() {

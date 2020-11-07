@@ -36,14 +36,18 @@ var areaRiservataApp= new Vue ({
         modalCheckReservation: {
             state: null,
             feedbackMessage: null
-        }
-
+        },
+        //VARIABILI AMMINISTRATORE
+        courseAdmin: [],
+        teacherAdmin: [],
+        associationsAdmin: [],
+        lessonsAdmin: []
     },
     mounted: function () {
         this.getSessionInfo();
-        this.getLessons();
     },
     methods: {
+//AREA RISERVATA STUDENTE
 //recupera da back end le lezioni prenotate dall'utente
         getLessons: function () {
             var self = this;
@@ -66,6 +70,13 @@ var areaRiservataApp= new Vue ({
                 self.user = data;
                 if (self.user == null) {
                     window.location = HOMEURL;
+                    return;
+                }
+                if(self.user.role === "student") {
+                    self.getLessons();
+                }
+                else{
+                    self.getCourses();
                 }
                 console.log("GetSessionInfo -> " + JSON.stringify(data));
             }).fail(function () {
@@ -181,7 +192,7 @@ var areaRiservataApp= new Vue ({
             this.modalNewReservation.courses = [];
             this.modalNewReservation.matrix = null;
             this.modalNewReservation.errorMessage = null;
-            $.get(HOMEURL + "public/courses", function (data) {
+            $.get(HOMEURL + "public/courses?filter=home", function (data) {
                 //se ok
                 self.modalNewReservation.courses = data;
                 $('#modalNew').modal('show');
@@ -301,7 +312,60 @@ var areaRiservataApp= new Vue ({
             }).fail(function (xhr) {
                 alert("Errore sul logout -> status " + xhr.status);
             });
+        },
+
+        //AREA RISERVATA ADMINISTRATOR
+        getCourses: function () {
+            var self = this;
+
+            $.get(HOMEURL + 'public/courses?filter=admin', function (data) {
+                //se ok
+                self.courseAdmin=data;
+                console.log("courseadmin -> " + JSON.stringify(data));
+
+
+            }).fail(function (xhr) {
+                alert("Errore caricamento corsi -> status " + xhr.status);
+            });
+
+        },
+
+        getTeachersAdmin: function () {
+            var self=this;
+            $.get(HOMEURL + 'public/teachers?filter=admin', function (data) {
+                //se ok
+                self.teacherAdmin=data;
+                console.log("teacheradmin -> " + JSON.stringify(data));
+
+            }).fail(function (xhr) {
+                alert("Errore caricamento corsi -> status " + xhr.status);
+            });
+        },
+
+        getAssociationsAdmin: function () {
+            var self=this;
+            $.get(SERVERURL + 'associationsadmin', function (data) {
+                //se ok
+                self.associationsAdmin=data;
+                console.log("courses & teacheradmin -> " + JSON.stringify(data));
+
+            }).fail(function (xhr) {
+                alert("Errore caricamento associazioni docenti e corsi -> status " + xhr.status);
+            });
+        },
+
+        getLessonAdmin: function () {
+            var self=this;
+            $.get(SERVERURL + 'lessons', function (data) {
+                //se ok
+                self.lessonsAdmin=data;
+                console.log("Lessons -> " + JSON.stringify(data));
+
+            }).fail(function (xhr) {
+                alert("Errore caricamento delle prenotazioni -> status " + xhr.status);
+            });
         }
+
     }
 });
 

@@ -3,6 +3,8 @@ package it.unito.sabatelli.ripetizioni.web.servlet;
 import com.google.gson.Gson;
 import it.unito.sabatelli.ripetizioni.dao.Dao;
 import it.unito.sabatelli.ripetizioni.model.Course;
+import it.unito.sabatelli.ripetizioni.model.GenericResponse;
+import it.unito.sabatelli.ripetizioni.model.User;
 
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
@@ -27,12 +29,41 @@ public class GetCoursesServlet extends HttpServlet {
     //setto il content Type
     response.setContentType("application/json");
     Gson gson = new Gson();
+    GenericResponse gr= new GenericResponse();
 
     try {
+      String filter=request.getParameter("filter");
 
+      User user = (User) request.getSession().getAttribute("user");
+
+      if (filter==null){
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        gr.setResult(false);
+        gr.setErrorOccurred("Manca parametro filter");
+        response.getWriter().write(gson.toJson(gr));
+        return;
+      }
       Dao dao = (Dao) request.getServletContext().getAttribute(Dao.DAONAME);
+      List<Course> courses = null;
+      if("admin".equals(filter)) {
+        if(user == null || !user.getRole().equalsIgnoreCase("administrator")) {
+          // l'utente non è autorizzato
+          response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+          gr = new GenericResponse();
+          gr.setErrorOccurred("Utente nullo o non autorizzato");
+          gr.setResult(false);
+          response.getWriter().write(gson.toJson(gr));
+          return;
+        }
 
-      List<Course> courses= dao.getCourseDB();
+        courses= dao.getCourseDB(true);
+
+      }
+      else {
+        courses= dao.getCourseDB(false);
+      }
+
+
 
       String json = gson.toJson(courses);
       response.getWriter().write(json);
@@ -41,7 +72,9 @@ public class GetCoursesServlet extends HttpServlet {
     }
     catch (SQLException e) {
       e.printStackTrace();
-      response.getWriter().write("{message: \"Impossibile reperire i dati\"}");
+      gr.setResult(false);
+      gr.setErrorOccurred("Impossibile reperire i dati");
+      response.getWriter().write(gson.toJson(gr));
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
 

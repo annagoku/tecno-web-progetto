@@ -4,7 +4,6 @@ public class User {
 
   private String id;
   private String username;
-  private String psw; //encrypted
   private String name;
   private String surname;
   private String email;
@@ -21,7 +20,6 @@ public class User {
   public User (String id, String user, String psw, String name, String surname, String email){
     this.id=id;
     this.username=user;
-    this.psw=psw;
     this.email=email;
   }
 
@@ -59,14 +57,6 @@ public class User {
 
   public void setUsername(String username) {
     this.username = username;
-  }
-
-  public String getPsw() {
-    return psw;
-  }
-
-  public void setPsw(String psw) {
-    this.psw = psw;
   }
 
   public String getEmail() {

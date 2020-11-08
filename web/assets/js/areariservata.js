@@ -41,7 +41,8 @@ var areaRiservataApp= new Vue ({
         courseAdmin: [],
         teacherAdmin: [],
         associationsAdmin: [],
-        lessonsAdmin: []
+        lessonsAdmin: [],
+        tabActive: null
     },
     mounted: function () {
         this.getSessionInfo();
@@ -316,6 +317,7 @@ var areaRiservataApp= new Vue ({
 
         //AREA RISERVATA ADMINISTRATOR
         getCourses: function () {
+            this.tabActive = "courses";
             var self = this;
 
             $.get(HOMEURL + 'public/courses?filter=admin', function (data) {
@@ -332,6 +334,7 @@ var areaRiservataApp= new Vue ({
 
         getTeachersAdmin: function () {
             var self=this;
+            this.tabActive = "teachers";
             $.get(HOMEURL + 'public/teachers?filter=admin', function (data) {
                 //se ok
                 self.teacherAdmin=data;
@@ -344,6 +347,7 @@ var areaRiservataApp= new Vue ({
 
         getAssociationsAdmin: function () {
             var self=this;
+            this.tabActive = "associations";
             $.get(SERVERURL + 'associationsadmin', function (data) {
                 //se ok
                 self.associationsAdmin=data;
@@ -356,6 +360,8 @@ var areaRiservataApp= new Vue ({
 
         getLessonAdmin: function () {
             var self=this;
+            this.tabActive = "lessons";
+
             $.get(SERVERURL + 'lessons', function (data) {
                 //se ok
                 self.lessonsAdmin=data;
@@ -364,6 +370,41 @@ var areaRiservataApp= new Vue ({
             }).fail(function (xhr) {
                 alert("Errore caricamento delle prenotazioni -> status " + xhr.status);
             });
+        },
+
+        refresh: function(p){
+            switch (p) {
+                case 1:
+                    this.getCourses();
+                    break;
+                case 2:
+                    this.getTeachersAdmin();
+                    break;
+                case 3:
+                    this.getAssociationsAdmin();
+                    break;
+                case 4:
+                    this.getLessonAdmin();
+                    break;
+            }
+        },
+
+        clickFabAdmin: function () {
+            switch (this.tabActive) {
+                case "associations":
+                    $('#insertAssociation').modal('show');
+                    break;
+                case "courses":
+                    $('#insertCourse').modal('show');
+                    break;
+                case "lessons":
+                    $('#insertNewReservation').modal('show');
+                    break;
+                case "teachers":
+                    $('#insertTeacher').modal('show');
+                    break;
+            }
+
         }
 
     }

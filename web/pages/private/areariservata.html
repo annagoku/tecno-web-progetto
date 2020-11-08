@@ -41,7 +41,7 @@
   <body>
    <div id="app">
 
-      <nav id="navbar" style="z-index:2000" class="navbar navbar-expand-md sticky-top py-1 site-header navbar-opaque">
+      <nav id="navbar" style="z-index:1002" class="navbar navbar-expand-md sticky-top py-1 site-header navbar-opaque">
         <a class="navbar-brand" href="#"><i class="fas fa-book-reader mx-2"></i> Ripetizioni</a>
         
         <ul  class="navbar-nav ml-auto mx-2">
@@ -102,7 +102,7 @@
   </template>
   <!-- Area riservata amministratore  -->
     <template v-if="(user.role == 'administrator')">
-      <nav style="z-index:1500; padding-top: 3.5rem!important" class="sticky-top  bg-white">
+      <nav style="z-index:1001; padding-top: 3.5rem!important" class="sticky-top  bg-white">
         <ul class="nav nav-tabs" id="nav-tab" role="tablist">
           <li class="nav-item"><a class="nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-courses" role="tab" aria-controls="nav-home" aria-selected="true">Corsi</a></li>
           <li class="nav-item"><a class="nav-link" id="nav-profile-tab" data-toggle="tab" href="#nav-teachers" role="tab" aria-controls="nav-profile" aria-selected="false" @click="getTeachersAdmin()">Insegnanti</a></li>
@@ -132,7 +132,7 @@
                   <th style="width: 10%"  scope="col">Materia</th>
                   <th style="width: 10%" scope="col">Icona</th>
                   <th style="width: 10%"  scope="col">Stato</th>
-                  <th style="width: 10%"  scope="col"><i class="fas fa-sync-alt text-primary"></i> </th>
+                  <th style="width: 10%"  scope="col"><a class="fas fa-sync-alt text-primary pointer" v-on:click="refresh(1)"></a></th>
 
                 </tr>
                 </thead>
@@ -152,13 +152,11 @@
               </table>
             </div>
           </div>
-          <div id="plusCourse" class="bg-primary  p-3 fab rounded-circle"><i class="fas fa-plus"></i></div>
         </div>
         <!-- TEACHERS  ADMIN-->
         <div class="tab-pane fade" id="nav-teachers" role="tabpanel" aria-labelledby="nav-profile-tab">
           <div class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3 ">
             <div id="teachers" class="cointainer mx-auto text-center">
-              <h1>Insegnanti</h1>
               <table  class="table table-striped table table-bordered table table-sm ">
                 <thead>
                 <tr>
@@ -167,7 +165,7 @@
                   <th style="width: 10%" scope="col">Cognome</th>
                   <th style="width: 20%"  scope="col">Avatar</th>
                   <th style="width: 10%"  scope="col">Stato</th>
-                  <th style="width: 10%"  scope="col"><i class="fas fa-sync-alt text-primary"></i> </th>
+                  <th style="width: 10%"  scope="col"><a class="fas fa-sync-alt text-primary pointer"  v-on:click="refresh(2)"></a></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -186,13 +184,11 @@
               </table>
             </div>
           </div>
-          <div id="plusTeacher" class="bg-primary  p-3 fab rounded-circle"><i class="fas fa-plus"></i></div>
         </div>
         <!-- COURSES & TEACHERS ADMIN -->
         <div class="tab-pane fade" id="nav-courseteacher" role="tabpanel" aria-labelledby="nav-contact-tab">
           <div class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3 ">
             <div id="courses&teachers" class="cointainer mx-auto text-center">
-              <h1>Corsi e Insegnanti</h1>
               <table  class="table table-striped table table-bordered table table-sm ">
                 <thead>
                 <tr>
@@ -203,7 +199,7 @@
                   <th style="width: 10%" scope="col">Cod.Corso</th>
                   <th style="width: 10%"  scope="col">Corso</th>
                   <th style="width: 10%"  scope="col">Stato</th>
-                  <th style="width: 10%"  scope="col"><i class="fas fa-sync-alt text-primary"></i> </th>
+                  <th style="width: 10%"  scope="col"><a class="fas fa-sync-alt text-primary pointer"  v-on:click="refresh(3)"></a></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -218,19 +214,17 @@
                   <td class="align-middle"><button v-if="(tc.statecode == 1)" type="button" class="btn btn-warning btn-sm"><i class="fas fa-trash-alt"></i></button></td>
                 </tr>
                 <tr v-if="(associationsAdmin.length == 0)">
-                  <td colspan="7" class="text-center">Nessuna associazione presente</td>
+                  <td colspan="8" class="text-center">Nessuna associazione presente</td>
                 </tr>
                 </tbody>
               </table>
             </div>
           </div>
-          <div id="plusTeacherCourse" class="bg-primary  p-3 fab rounded-circle"><i class="fas fa-plus"></i></div>
         </div>
         <!-- LISTA PRENOTAZIONI ADMIN-->
         <div class="tab-pane fade" id="nav-reservation" role="tabpanel" aria-labelledby="nav-contact-tab">
           <div class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3 ">
-            <div id="reservationList" class="cointainer mx-auto text-center">
-              <h1>Lista prenotazioni</h1>
+            <div id="reservation" class="cointainer mx-auto text-center">
               <table  class="table table-striped table table-bordered table table-sm">
                 <thead>
                 <tr>
@@ -243,7 +237,7 @@
                   <th style="width: 10%" scope="col">Nome Insegnante</th>
                   <th style="width: 10%" scope="col">Cognome Insegnate</th>
                   <th style="width: 10%"  scope="col">Stato</th>
-                  <th style="width: 10%"  scope="col"><i class="fas fa-sync-alt text-primary"></i> </th>
+                  <th style="width: 10%"  scope="col"><a class="fas fa-sync-alt text-primary pointer"  v-on:click="refresh(4)"></a></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -257,18 +251,19 @@
                   <td class="align-middle">{{l.teacher.name}}</td>
                   <td class="align-middle">{{l.teacher.surname}}</td>
                   <td class="align-middle">{{l.state.name}}</td>
-                  <th style="width: 10%"  scope="col"><i class="fas fa-sync-alt text-primary"></i> </th>
+                  <td class="align-middle"><button v-if="(l.state.code == 1)" type="button" class="btn btn-danger btn-sm" v-on:click="showModalLesson(l)"><i class="fas fa-times-circle"></i></button></td>
                 </tr>
                 <tr v-if="(lessonsAdmin.length == 0)">
                   <td colspan="10" class="text-center">Nessuna prenotazione presente</td>
                 </tr>
-
                 </tbody>
               </table>
             </div>
           </div>
         </div>
       </div>
+
+        <div id="plus_admin" class="bg-primary  p-3 fab rounded-circle" v-on:click="clickFabAdmin()"><i class="fas fa-plus"></i></div>
 
     </div></div></template>
 
@@ -285,7 +280,7 @@
            </button>
          </div>
          <div class="modal-body text-center">
-           <button type="button" class="btn btn-outline-success" v-bind:class="{active : modalLesson.wantConfirm}" v-on:click="setModalLessonState(1)">Segna come effettuata</button>
+           <button type="button" v-if="(user.role=='student')" class="btn btn-outline-success" v-bind:class="{active : modalLesson.wantConfirm}" v-on:click="setModalLessonState(1)">Segna come effettuata</button>
            <button type="button" class="btn btn-outline-danger" v-bind:class="{active : modalLesson.wantCancel}" v-on:click="setModalLessonState(2)">Annulla prenotazione</button>
            <p v-if="modalLesson.errorMessage" class="text-danger">{{modalLesson.errorMessage}}</p>
          </div>
@@ -418,6 +413,167 @@
    </div>
  </div>
 
+ <!-- Modale fab button amministratore -->
+     <!-- Modale amministratore inserimento nuovo corso  -->
+<div class="modal" id="insertCourse" tabindex="-1" role="dialog">
+ <div class="modal-dialog" role="document">
+   <div class="modal-content">
+     <div class="modal-header">
+       <h5 class="modal-title">Inserisci un nuovo corso</h5>
+       <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+         <span aria-hidden="true">&times;</span>
+       </button>
+     </div>
+     <div class="modal-body">
+       <form>
+         <div class="form-group">
+           <label for="coursecode">Codice corso</label>
+           <input type="text" class="form-control" id="coursecode" aria-describedby="emailHelp" placeholder="Codice corso">
+         </div>
+         <div class="form-group">
+           <label for="coursename">Nome corso</label>
+           <input type="text" class="form-control" id="coursename" placeholder="Nome corso">
+         </div>
+         <div class="form-group">
+           <label for="image">Immagine</label>
+           <input type="text" class="form-control" id="image" placeholder="Immagine">
+         </div>
+       </form>
+     </div>
+     <div class="modal-footer">
+       <button type="button" class="btn btn-secondary" data-dismiss="modal">Annulla</button>
+       <button type="button" class="btn btn-primary">Salva</button>
+     </div>
+   </div>
+ </div></div>
+  <!-- Modale amministratore inserimento nuovo insegnante  -->
+  <div class="modal" id="insertTeacher" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Inserisci un nuovo insegnante</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="form-group">
+              <label for="badge">Numero badge</label>
+              <input type="text" class="form-control" id="badge" aria-describedby="emailHelp" placeholder="Numero badge">
+            </div>
+            <div class="form-group">
+              <label for="name">Nome</label>
+              <input type="text" class="form-control" id="name" placeholder="Nome ">
+            </div>
+            <div class="form-group">
+              <label for="surname">Cognome</label>
+              <input type="text" class="form-control" id="surname" placeholder="Cognome ">
+            </div>
+            <div class="form-group">
+              <label for="avatar">Immagine</label>
+              <input type="text" class="form-control" id="avatar" placeholder="Immagine">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Annulla</button>
+          <button type="button" class="btn btn-primary">Salva</button>
+        </div>
+      </div>
+    </div></div>
+
+    <!-- Modale amministratore inserimento nuova associazione corso-insegnante  -->
+    <div class="modal" id="insertAssociation" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Gestisci gli assegnamenti corsi e insegnanti</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="form-group">
+                <select class="form-control" id="teacher" >
+                  <option value="-">Scegli l'insegnante</option>
+                  <option></option>
+                </select>
+              </div>
+              <div class="form-group">
+                <select class="form-control" id="course">
+                  <option value="-">Scegli la materia</option>
+                  <option></option>
+                </select>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Annulla</button>
+            <button type="button" class="btn btn-primary">Salva</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+     <!-- Modale amministratore inserimento nuova prenotazione  -->
+     <div class="modal" id="insertNewReservation" tabindex="-1" role="dialog">
+       <div class="modal-dialog" role="document">
+         <div class="modal-content">
+           <div class="modal-header">
+             <h5 class="modal-title">Inserisci una nuova prenotazione</h5>
+             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+               <span aria-hidden="true">&times;</span>
+             </button>
+           </div>
+           <div class="modal-body">
+             <form>
+               <div class="form-group">
+                 <select class="form-control" id="username">
+                   <option value="-">Scegli l'utente</option>
+                   <option></option>
+                 </select>
+               </div>
+               <div class="form-group">
+                 <select class="form-control" id="courseNew">
+                   <option value="-">Scegli la materia</option>
+                   <option></option>
+                 </select>
+                 <table class="table table-striped table table-bordered table table-sm ">
+                   <thead>
+                   <tr>
+                     <th style="width: 10%" scope="col">Ora</th>
+                     <th style="width: 10%" scope="col">Giorno</th>
+                     <th style="width: 20%" scope="col">Nome Insegnante</th>
+                     <th style="width: 20%" scope="col">Cognome Insegnate</th>
+                     <th style="width: 10%" scope="col"></th>
+                   </tr>
+                   </thead>
+                   <tbody>
+                   <tr>
+                     <td class="align-middle"></td>
+                     <td class="align-middle"></td>
+                     <td class="align-middle"></td>
+                     <td class="align-middle"></td>
+                     <td class="align-middle"><button type="button" class="btn btn-success btn-sm"><i class="fas fa-check-circle"></i></button></td>
+                   </tr>
+                   </tbody>
+                 </table>
+               </div>
+             </form>
+           </div>
+           <div class="modal-footer">
+             <button type="button" class="btn btn-secondary" data-dismiss="modal">Annulla</button>
+             <button type="button" class="btn btn-primary">Salva</button>
+           </div>
+         </div>
+       </div>
+     </div>
+
+
+
+
      <!-- Footer area riservata -->
      <footer v-if="(user.role == 'student')" class="container-fluid py-5 footer w-100">
        <div class="row">
@@ -431,10 +587,6 @@
        </div>
      </footer>
    </div>
-
-
-
-
 </body>
 
 

@@ -440,8 +440,7 @@
            <label for="image" >Immagine</label>
            <input type="text"  v-model="modalInsertCourse.image='fas fa-book-open'" class="form-control" id="image" placeholder="Immagine">
          </div>
-
-       <p v-if="modalInsertCourse.errorMessageServer!=null"><small class="text-danger">{{modalInsertCourse.errorMessageServer}}</small></p>
+       <p v-if="modalInsertCourse.errorMessageServer"><small class="text-danger">{{modalInsertCourse.errorMessageServer}}</small></p>
        <small class="text-info">*dati obbligatori</small>
      </div>
      <div class="modal-footer">

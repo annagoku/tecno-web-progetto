@@ -408,6 +408,9 @@ var areaRiservataApp= new Vue ({
                     this.modalInsertCourse.code=null;
                     this.modalInsertCourse.name=null;
                     this.modalInsertCourse.image=null;
+                    this.modalInsertCourse.errorMessageServer = null;
+                    this.modalInsertCourse.errorMessageName = null;
+                    this.modalInsertCourse.errorMessageCode = null;
                     $('#insertCourse').modal('show');
                     break;
                 case "lessons":
@@ -460,7 +463,10 @@ var areaRiservataApp= new Vue ({
                 }
             }).fail(function (xhr) {
                 console.log("Save new course error code " + xhr.status);
-                alert("Errore nel salvataggio di un nuovo corso  -> status " + xhr.status);
+                //alert("Errore nel salvataggio di un nuovo corso  -> status " + xhr.status);
+                var response =JSON.parse(xhr.responseText);
+
+                self.modalInsertCourse.errorMessageServer = response.errorOccurred;
 
             });
 

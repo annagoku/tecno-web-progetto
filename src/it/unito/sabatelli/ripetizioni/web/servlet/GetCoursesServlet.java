@@ -126,6 +126,7 @@ public class GetCoursesServlet extends HttpServlet {
           gresp.setResult(true);
           response.setStatus(HttpServletResponse.SC_OK);
           response.getWriter().write(gson.toJson(gresp));
+          return;
         }
       }
       else {
@@ -138,7 +139,7 @@ public class GetCoursesServlet extends HttpServlet {
     }catch (Exception ex){
       ex.printStackTrace();
       gresp.setResult(false);
-      gresp.setErrorOccurred("Impossibile reperire i dati");
+      gresp.setErrorOccurred("Errore "+ ex.getMessage());
       response.getWriter().write(gson.toJson(gresp));
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }

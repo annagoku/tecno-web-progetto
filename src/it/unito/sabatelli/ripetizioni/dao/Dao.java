@@ -501,6 +501,7 @@ public static String CHECK_NEW_COURSE="SELECT COUNT(c.COURSECODE) FROM COURSE c 
   public int saveNewCourse(String code, String name, String image) throws  SQLException {
     checkInit();
     Connection conn = null;
+
     try {
       conn = getConnection();
 
@@ -526,6 +527,7 @@ public static String CHECK_NEW_COURSE="SELECT COUNT(c.COURSECODE) FROM COURSE c 
   public boolean checkNewCourse(String code) throws SQLException{
     checkInit();
     Connection conn = null;
+    int count=0;
     try {
       conn = getConnection();
       if (conn != null) {
@@ -537,9 +539,12 @@ public static String CHECK_NEW_COURSE="SELECT COUNT(c.COURSECODE) FROM COURSE c 
 
       ResultSet rs = ps.executeQuery();
 
-      if(rs.next() && rs.getInt(1)>0) {
-        return false;
-      }else return true;
+      while (rs.next()) {
+       count=rs.getInt(1);
+      }
+      if(count>0) return false;
+      else return true;
+
 
     }catch (SQLException e) {
       e.getMessage();

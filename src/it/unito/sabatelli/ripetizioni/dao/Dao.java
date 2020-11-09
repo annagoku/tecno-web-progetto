@@ -87,8 +87,8 @@ public class Dao {
           "ORDER BY t.idslot, t.daycode, t.coursename, t.surname";
 
 public static String INSERT_NEW_LESSON = "INSERT INTO LESSONS (IDUSER, COURSECODE, BADGENUMBER, IDSLOT, DAYCODE, STATECODE) VALUES (?,?,?,?,?, 1)";
-
-
+public static String INSERT_NEW_COURSE= "INSERT INTO COURSE (COURSECODE, COURSENAME, ICON, ACTIVE) VALUES(?,?,?,1)";
+public static String CHECK_NEW_COURSE="SELECT COUNT(c.COURSECODE) FROM COURSE c WHERE c.COURSECODE=?";
 
   boolean initialized = false;
   String url;
@@ -433,6 +433,7 @@ public static String INSERT_NEW_LESSON = "INSERT INTO LESSONS (IDUSER, COURSECOD
     }
   }
 
+  //inserimento nuova prenotazione profilo studente
   public int saveNewReservation(CatalogItem item, User user, Lesson lessonToCancel) throws  SQLException {
     checkInit();
     Connection conn = null;
@@ -495,6 +496,60 @@ public static String INSERT_NEW_LESSON = "INSERT INTO LESSONS (IDUSER, COURSECOD
     }
     return listTC;
   }
+
+
+  public int saveNewCourse(String code, String name, String image) throws  SQLException {
+    checkInit();
+    Connection conn = null;
+    try {
+      conn = getConnection();
+
+      PreparedStatement ps = conn.prepareStatement(INSERT_NEW_COURSE);
+      ps.setString(1, code);
+      ps.setString(2, name );
+      ps.setString(3, image);
+
+      int rows = ps.executeUpdate();
+      System.out.println("saveNewCourse - row inserted "+rows);
+
+      return rows;
+
+    }catch (SQLException e) {
+      e.getMessage();
+      throw  e;
+    }
+    finally {
+      safeCloseConnection(conn);
+    }
+  }
+
+  public boolean checkNewCourse(String code) throws SQLException{
+    checkInit();
+    Connection conn = null;
+    try {
+      conn = getConnection();
+      if (conn != null) {
+        System.out.println("Connected to the database test");
+      }
+
+      PreparedStatement ps = conn.prepareStatement(CHECK_NEW_COURSE);
+      ps.setString(1, code);
+
+      ResultSet rs = ps.executeQuery();
+
+      if(rs.next() && rs.getInt(1)>0) {
+        return false;
+      }else return true;
+
+    }catch (SQLException e) {
+      e.getMessage();
+      throw  e;
+    }finally {
+      safeCloseConnection(conn);
+    }
+
+  }
+
 
 }
 

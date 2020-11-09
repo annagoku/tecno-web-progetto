@@ -119,12 +119,6 @@
         <div class="tab-pane fade show active" id="nav-courses" role="tabpanel" aria-labelledby="nav-home-tab">
           <div id="start-change" class="w-100 my-md-3 pl-md-3 ">
             <div class="cointainer mx-auto text-center">
-              <div class="form-group text-left col-sm-6 col-lg-3">
-                <span><label for="formGroupMateria">Filtra per Materia</label><select class="form-control text-left" id="listamaterie">
-                  <option value="-">Scegli la materia</option>
-                  <option>mat</option>
-                </select></span>
-              </div>
               <table  class="table table-hover  table-bordered  table-sm">
                 <thead>
                 <tr>
@@ -259,6 +253,10 @@
                 </tbody>
               </table>
             </div>
+
+          </div>
+          <div>
+            <button type=button class="btn btn-primary  "> Visualizza tutte le lezioni prenotabili</button>
           </div>
         </div>
       </div>
@@ -418,6 +416,7 @@
 <div class="modal" id="insertCourse" tabindex="-1" role="dialog">
  <div class="modal-dialog" role="document">
    <div class="modal-content">
+     <form @submit="checkInputNewCourse">
      <div class="modal-header">
        <h5 class="modal-title">Inserisci un nuovo corso</h5>
        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -425,25 +424,31 @@
        </button>
      </div>
      <div class="modal-body">
-       <form>
+
          <div class="form-group">
-           <label for="coursecode">Codice corso</label>
-           <input type="text" class="form-control" id="coursecode" aria-describedby="emailHelp" placeholder="Codice corso">
+           <label for="coursecode">Codice corso*</label>
+           <input type="text" v-model="modalInsertCourse.code" class="form-control" id="coursecode" placeholder="Codice corso" maxlength="3">
+           <template v-if="modalInsertCourse.errorMessageCode!=null"><small class="text-danger">{{modalInsertCourse.errorMessageCode}}</small></template>
          </div>
          <div class="form-group">
-           <label for="coursename">Nome corso</label>
-           <input type="text" class="form-control" id="coursename" placeholder="Nome corso">
+           <label for="coursename">Nome corso*</label>
+           <input type="text" v-model="modalInsertCourse.name" class="form-control" id="coursename" placeholder="Nome corso">
+           <template v-if="modalInsertCourse.errorMessageName!=null"><small class="text-danger">{{modalInsertCourse.errorMessageName}}</small></template>
+
          </div>
          <div class="form-group">
-           <label for="image">Immagine</label>
-           <input type="text" class="form-control" id="image" placeholder="Immagine">
+           <label for="image" >Immagine</label>
+           <input type="text"  v-model="modalInsertCourse.image='fas fa-book-open'" class="form-control" id="image" placeholder="Immagine">
          </div>
-       </form>
+
+       <p v-if="modalInsertCourse.errorMessageServer!=null"><small class="text-danger">{{modalInsertCourse.errorMessageServer}}</small></p>
+       <small class="text-info">*dati obbligatori</small>
      </div>
      <div class="modal-footer">
        <button type="button" class="btn btn-secondary" data-dismiss="modal">Annulla</button>
-       <button type="button" class="btn btn-primary">Salva</button>
+       <button  class="btn btn-primary" type="submit" >Salva</button>
      </div>
+     </form>
    </div>
  </div></div>
   <!-- Modale amministratore inserimento nuovo insegnante  -->
@@ -459,15 +464,15 @@
         <div class="modal-body">
           <form>
             <div class="form-group">
-              <label for="badge">Numero badge</label>
+              <label for="badge">Numero badge*</label>
               <input type="text" class="form-control" id="badge" aria-describedby="emailHelp" placeholder="Numero badge">
             </div>
             <div class="form-group">
-              <label for="name">Nome</label>
+              <label for="name">Nome*</label>
               <input type="text" class="form-control" id="name" placeholder="Nome ">
             </div>
             <div class="form-group">
-              <label for="surname">Cognome</label>
+              <label for="surname">Cognome*</label>
               <input type="text" class="form-control" id="surname" placeholder="Cognome ">
             </div>
             <div class="form-group">
@@ -475,6 +480,7 @@
               <input type="text" class="form-control" id="avatar" placeholder="Immagine">
             </div>
           </form>
+          <p class="text-info">*Dati obbligatori</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Annulla</button>

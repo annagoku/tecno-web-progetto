@@ -42,7 +42,17 @@ var areaRiservataApp= new Vue ({
         teacherAdmin: [],
         associationsAdmin: [],
         lessonsAdmin: [],
-        tabActive: null
+        tabActive: null,
+
+        modalInsertCourse: {
+            code: null,
+            name: null,
+            image: null,
+            errorMessageCode : null,
+            errorMessageName: null,
+            errorMessageServer: null,
+            response: null
+        }
     },
     mounted: function () {
         this.getSessionInfo();
@@ -395,6 +405,9 @@ var areaRiservataApp= new Vue ({
                     $('#insertAssociation').modal('show');
                     break;
                 case "courses":
+                    this.modalInsertCourse.code=null;
+                    this.modalInsertCourse.name=null;
+                    this.modalInsertCourse.image=null;
                     $('#insertCourse').modal('show');
                     break;
                 case "lessons":
@@ -404,6 +417,53 @@ var areaRiservataApp= new Vue ({
                     $('#insertTeacher').modal('show');
                     break;
             }
+
+        },
+
+        checkInputNewCourse: function(e){
+
+            var espression = new RegExp('^[a-z]+$','i');
+            e.preventDefault();
+
+            this.modalInsertCourse.errorMessageCode=null;
+            this.modalInsertCourse.errorMessageName=null;
+            if(this.modalInsertCourse.code==null || this.modalInsertCourse.code.length!=3 || !espression.test(this.modalInsertCourse.code)){
+                this.modalInsertCourse.errorMessageCode="Campo obbligatorio di 3 caratteri solo alfanumerici";
+                return;
+            }
+
+            if(this.modalInsertCourse.name==null|| !espression.test(this.modalInsertCourse.name)){
+                this.modalInsertCourse.errorMessageName="Campo obbligatorio. Inserire solo caratteri alfanumerici";
+                return;
+            }
+            else{
+                this.insertNewCourseAdmin();
+            }
+
+        },
+        insertNewCourseAdmin: function (){
+            var self=this;
+
+             this.modalInsertCourse.errorMessageServer=null;
+            $.post(HOMEURL + 'public/courses', {
+                newcode: this.modalInsertCourse.code, newname: this.modalInsertCourse.name, newimage: this.modalInsertCourse.image
+            }, function (data) {
+                console.log("InsertNewCourse -> " + JSON.stringify(data));
+                //se ko
+                self.response=data;
+                if (!self.response.result) {
+                    this.modalInsertCourse.errorMessageServer=self.response.errorOccurred;
+                } else {
+                    $('#insertCourse').modal('hide');
+
+                    self.getCourses();
+                }
+            }).fail(function (xhr) {
+                console.log("Save new course error code " + xhr.status);
+                alert("Errore nel salvataggio di un nuovo corso  -> status " + xhr.status);
+
+            });
+
 
         }
 

@@ -85,10 +85,13 @@ public class Dao {
           "    AND t.idslot = t2.idslot " +
           "WHERE t2.idslot IS NULL  AND t.coursecode=? " +
           "ORDER BY t.idslot, t.daycode, t.coursename, t.surname";
-
-public static String INSERT_NEW_LESSON = "INSERT INTO LESSONS (IDUSER, COURSECODE, BADGENUMBER, IDSLOT, DAYCODE, STATECODE) VALUES (?,?,?,?,?, 1)";
-public static String INSERT_NEW_COURSE= "INSERT INTO COURSE (COURSECODE, COURSENAME, ICON, ACTIVE) VALUES(?,?,?,1)";
-public static String CHECK_NEW_COURSE="SELECT COUNT(c.COURSECODE) FROM COURSE c WHERE c.COURSECODE=?";
+  public static String INSERT_NEW_LESSON = "INSERT INTO LESSONS (IDUSER, COURSECODE, BADGENUMBER, IDSLOT, DAYCODE, STATECODE) VALUES (?,?,?,?,?, 1)";
+  public static String INSERT_NEW_COURSE= "INSERT INTO COURSE (COURSECODE, COURSENAME, ICON, ACTIVE) VALUES(?,?,?,1)";
+  public static String CHECK_NEW_COURSE="SELECT COUNT(c.COURSECODE) FROM COURSE c WHERE c.COURSECODE=?";
+  public static String INSERT_NEW_TEACHER= "INSERT INTO TEACHER (BADGENUMBER, NAME, SURNAME, AVATAR, ACTIVE) VALUES(?,?,?,?,1)";
+  public static String CHECK_NEW_TEACHER="SELECT COUNT(t.BADGENUMBER) FROM TEACHER t WHERE t.BADGENUMBER=?";
+  public static String FIND_NEW_COURSE_FOR_TEACHER="SELECT c.COURSECODE, c.COURSENAME, c.ICON, c.ACTIVE FROM COURSE c WHERE c.ACTIVE=1 AND c.COURSENAME NOT IN (SELECT c.COURSENAME FROM TEACHER_COURSE TC, COURSE c, TEACHER t WHERE tc.COURSECODE=c.COURSECODE " +
+          "AND tc.BADGENUMBER=t.BADGENUMBER AND t.BADGENUMBER=?)";
 
   boolean initialized = false;
   String url;
@@ -497,7 +500,7 @@ public static String CHECK_NEW_COURSE="SELECT COUNT(c.COURSECODE) FROM COURSE c 
     return listTC;
   }
 
-
+//Salvataggio nuovo corso amministratore
   public int saveNewCourse(String code, String name, String image) throws  SQLException {
     checkInit();
     Connection conn = null;
@@ -552,6 +555,97 @@ public static String CHECK_NEW_COURSE="SELECT COUNT(c.COURSECODE) FROM COURSE c 
     }finally {
       safeCloseConnection(conn);
     }
+
+  }
+//Salvataggio nuovo insegnante amministratore
+public int saveNewTeacher(String badge, String name, String surname, String avatar) throws  SQLException {
+  checkInit();
+  Connection conn = null;
+
+  try {
+    conn = getConnection();
+
+    PreparedStatement ps = conn.prepareStatement(INSERT_NEW_TEACHER);
+    ps.setString(1, badge);
+    ps.setString(2, name );
+    ps.setString(3, surname);
+    ps.setString(4, avatar);
+
+    int rows = ps.executeUpdate();
+    System.out.println("saveNewTeacher - row inserted "+rows);
+
+    return rows;
+
+  }catch (SQLException e) {
+    e.getMessage();
+    throw  e;
+  }
+  finally {
+    safeCloseConnection(conn);
+  }
+}
+
+  public boolean checkNewTeacher(String badge) throws SQLException{
+    checkInit();
+    Connection conn = null;
+    int count=0;
+    try {
+      conn = getConnection();
+      if (conn != null) {
+        System.out.println("Connected to the database test");
+      }
+
+      PreparedStatement ps = conn.prepareStatement(CHECK_NEW_TEACHER);
+      ps.setString(1, badge);
+
+      ResultSet rs = ps.executeQuery();
+
+      while (rs.next()) {
+        count=rs.getInt(1);
+      }
+      if(count>0) return false;
+      else return true;
+
+
+    }catch (SQLException e) {
+      e.getMessage();
+      throw  e;
+    }finally {
+      safeCloseConnection(conn);
+    }
+
+  }
+
+  public ArrayList<Course> findNewCourseForTeacher(String badge) throws SQLException {
+    checkInit();
+    Connection conn = null;
+    int count=0;
+    ArrayList<Course> list=new ArrayList<>();
+    try {
+      conn = getConnection();
+      if (conn != null) {
+        System.out.println("Connected to the database test");
+      }
+
+
+      PreparedStatement ps = conn.prepareStatement(FIND_NEW_COURSE_FOR_TEACHER);
+      ps.setString(1, badge);
+
+      ResultSet rs = ps.executeQuery();
+
+      while (rs.next()) {
+        Course c= new Course (rs.getString("coursecode"), rs.getString("coursename"), rs.getString("icon"));
+        c.bindState(rs.getInt("active"));
+        list.add(c);
+      }
+
+    }catch (SQLException e) {
+      e.getMessage();
+      throw  e;
+    }finally {
+      safeCloseConnection(conn);
+    }
+    return list;
 
   }
 

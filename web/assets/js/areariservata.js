@@ -52,6 +52,25 @@ var areaRiservataApp= new Vue ({
             errorMessageName: null,
             errorMessageServer: null,
             response: null
+        },
+        modalInsertTeacher: {
+            badge: null,
+            name: null,
+            surname: null,
+            avatar: null,
+            errorMessageBadge : null,
+            errorMessageName: null,
+            errorMessageSurname: null,
+            errorMessageServer: null,
+            response: null
+        },
+        modalInsertAssociation: {
+            teacher: [],
+            courseToMatch: [],
+            teacherSelected: null,
+            courseSelected: null,
+            errorMessageSelection: null,
+            errorMessageServer: null
         }
     },
     mounted: function () {
@@ -342,16 +361,18 @@ var areaRiservataApp= new Vue ({
 
         },
 
-        getTeachersAdmin: function () {
+        getTeachersAdmin: function (callback) {
             var self=this;
             this.tabActive = "teachers";
             $.get(HOMEURL + 'public/teachers?filter=admin', function (data) {
                 //se ok
                 self.teacherAdmin=data;
                 console.log("teacheradmin -> " + JSON.stringify(data));
+                if(callback)
+                    callback();
 
             }).fail(function (xhr) {
-                alert("Errore caricamento corsi -> status " + xhr.status);
+                alert("Errore caricamento insegnanti -> status " + xhr.status);
             });
         },
 
@@ -388,7 +409,7 @@ var areaRiservataApp= new Vue ({
                     this.getCourses();
                     break;
                 case 2:
-                    this.getTeachersAdmin();
+                    this.getTeachersAdmin(null);
                     break;
                 case 3:
                     this.getAssociationsAdmin();
@@ -402,7 +423,13 @@ var areaRiservataApp= new Vue ({
         clickFabAdmin: function () {
             switch (this.tabActive) {
                 case "associations":
-                    $('#insertAssociation').modal('show');
+                    var self = this;
+                    this.getTeachersAdmin(
+                        function () {
+                            self.modalInsertAssociation.teacher = self.teacherAdmin;
+                            $('#insertAssociation').modal('show');
+                        }
+                    );
                     break;
                 case "courses":
                     this.modalInsertCourse.code=null;
@@ -417,6 +444,14 @@ var areaRiservataApp= new Vue ({
                     $('#insertNewReservation').modal('show');
                     break;
                 case "teachers":
+                    this.modalInsertTeacher.badge=null;
+                    this.modalInsertTeacher.name=null;
+                    this.modalInsertTeacher.surname=null;
+                    this.modalInsertTeacher.avatar=null;
+                    this.modalInsertTeacher.errorMessageBadge=null;
+                    this.modalInsertTeacher.errorMessageName=null;
+                    this.modalInsertTeacher.errorMessageSurname=null;
+                    this.modalInsertTeacher.errorMessageServer=null;
                     $('#insertTeacher').modal('show');
                     break;
             }
@@ -447,7 +482,7 @@ var areaRiservataApp= new Vue ({
         insertNewCourseAdmin: function (){
             var self=this;
 
-             this.modalInsertCourse.errorMessageServer=null;
+            this.modalInsertCourse.errorMessageServer=null;
             $.post(HOMEURL + 'public/courses', {
                 newcode: this.modalInsertCourse.code, newname: this.modalInsertCourse.name, newimage: this.modalInsertCourse.image
             }, function (data) {
@@ -470,6 +505,83 @@ var areaRiservataApp= new Vue ({
 
             });
 
+
+        },
+
+        checkInputNewTeacher: function(e){
+            e.preventDefault();
+            var expressionAlphabetic = new RegExp('^[A-Za-z ]+$','i');
+            var expressionNumber=new RegExp('^[0-9]+$','i');
+            this.modalInsertTeacher.errorMessageBadge=null;
+            this.modalInsertTeacher.errorMessageName=null;
+            this.modalInsertTeacher.errorMessageSurname=null;
+            this.modalInsertTeacher.errorMessageServer=null;
+
+
+            if(this.modalInsertTeacher.badge==null || this.modalInsertTeacher.badge.length!=6  || !expressionNumber.test(this.modalInsertTeacher.badge)){
+                this.modalInsertTeacher.errorMessageBadge="Campo obbligatorio di 6 caratteri numerici";
+                return;
+            }
+
+            if(this.modalInsertTeacher.name==null || !expressionAlphabetic.test(this.modalInsertTeacher.name)){
+                this.modalInsertTeacher.errorMessageName="Campo obbligatorio. Inserire solo caratteri alfabetici";
+                return;
+            }
+            if(this.modalInsertTeacher.surname==null|| !expressionAlphabetic.test(this.modalInsertTeacher.surname)){
+                this.modalInsertTeacher.errorMessageSurname="Campo obbligatorio. Inserire solo caratteri alfabetici";
+                return;
+            }
+
+            else{
+                this.insertNewTeacherAdmin();
+            }
+        },
+        insertNewTeacherAdmin: function (){
+            var self=this;
+
+            this.modalInsertTeacher.errorMessageServer=null;
+            $.post(HOMEURL + 'public/teachers?filter=admin', {
+                newbadge: this.modalInsertTeacher.badge,
+                newname: this.modalInsertTeacher.name,
+                newsurname: this.modalInsertTeacher.surname,
+                newavatar: this.modalInsertTeacher.avatar
+            }, function (data) {
+                console.log("InsertNewTeacher -> " + JSON.stringify(data));
+                //se ko
+                self.response=data;
+                if (!self.response.result) {
+                    this.modalInsertTeacher.errorMessageServer=self.response.errorOccurred;
+                } else {
+                    $('#insertTeacher').modal('hide');
+                    self.getTeachersAdmin(null);
+                }
+            }).fail(function (xhr) {
+                console.log("Save new teacher error code " + xhr.status);
+                //alert("Errore nel salvataggio di un nuovo corso  -> status " + xhr.status);
+                var response =JSON.parse(xhr.responseText);
+
+                self.modalInsertTeacher.errorMessageServer = response.errorOccurred;
+
+            });
+        },
+
+        onSelectTeacher: function (e) {
+            var badge = e.target.value;
+            var self = this;
+            if(badge != '-') {
+                $.get(SERVERURL + 'courseList?badge=' + badge, function (data) {
+                    console.log("Select new course for teacher selected -> " + JSON.stringify(data));
+
+                    self.modalInsertAssociation.courseToMatch = data;
+
+                }).fail(function (xhr) {
+                    console.log("Retrieve new course available for teacher " + xhr.status);
+                    self.modalInsertAssociation.errorMessage = "Si è verificato un errore";
+
+                });
+            }
+
+            console.log("Selected teacher badge -> " + badge);
 
         }
 

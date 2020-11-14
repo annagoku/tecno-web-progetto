@@ -104,7 +104,7 @@
   <template v-if="(user.role == 'administrator')">
     <nav style="z-index:1001; padding-top: 3.5rem!important" class="sticky-top  bg-white">
       <ul class="nav nav-tabs" id="nav-tab" role="tablist">
-        <li class="nav-item"><a class="nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-courses" role="tab" aria-controls="nav-home" aria-selected="true">Corsi</a></li>
+        <li class="nav-item"><a class="nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-courses" role="tab" aria-controls="nav-home" aria-selected="true" @click="getCourses()">Corsi</a></li>
         <li class="nav-item"><a class="nav-link" id="nav-profile-tab" data-toggle="tab" href="#nav-teachers" role="tab" aria-controls="nav-profile" aria-selected="false" @click="getTeachersAdmin()">Insegnanti</a></li>
         <li class="nav-item"><a class="nav-link" id="nav-courseteacher-tab" data-toggle="tab" href="#nav-courseteacher" role="tab" aria-controls="nav-contact" aria-selected="false" @click="getAssociationsAdmin()">Corsi e Insegnanti</a></li>
         <li class="nav-item"><a class="nav-link" id="nav-reservation-tab" data-toggle="tab" href="#nav-reservation" role="tab" aria-controls="nav-contact" aria-selected="false" @click="getLessonAdmin()">Lista Prenotazioni studenti</a></li>
@@ -497,6 +497,7 @@
   <div class="modal" id="insertAssociation" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
+        <form @submit="saveNewAssociation">
         <div class="modal-header">
           <h5 class="modal-title">Gestisci gli assegnamenti corsi e insegnanti</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -504,25 +505,27 @@
           </button>
         </div>
         <div class="modal-body">
-          <form>
             <div class="form-group">
-              <select class="form-control"  id="teacher" v-on:click="onSelectTeacher($event)"  >
+              <select class="form-control"  id="teacher" v-on:click="onSelectTeacher($event)" v-model="modalInsertAssociation.teacherSelected" >
                 <option value="-">Scegli l'insegnante</option>
                 <option v-for="ins in modalInsertAssociation.teacher" v-if="ins.state=='in servizio'"  v-bind:value="ins.badge">{{ins.badge}}--{{ins.name}}--{{ins.surname}}</option>
               </select>
+              <small v-if="modalInsertAssociation.errorMessageSelectionTeacher" class="text-danger">{{modalInsertAssociation.errorMessageSelectionTeacher}}</small>
             </div>
             <div class="form-group">
-              <select class="form-control"  id="course">
+              <select class="form-control"  id="course" v-model="modalInsertAssociation.courseSelected">
                 <option value="-">Scegli la materia</option>
-                <option v-for="ctm in modalInsertAssociation.courseToMatch"  > {{ctm.name}}</option>
+                <option v-for="ctm in modalInsertAssociation.courseToMatch" v-bind:value="ctm.code"  > {{ctm.name}}</option>
               </select>
+              <small v-if="modalInsertAssociation.errorMessageSelectionCourse" class="text-danger">{{modalInsertAssociation.errorMessageSelectionCourse}}</small>
             </div>
-          </form>
+          <small v-if="modalInsertAssociation.errorMessageServer" class="text-danger">{{modalInsertAssociation.errorMessageServer}}</small>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Annulla</button>
-          <button type="button" class="btn btn-primary">Salva</button>
+          <button type="submit" class="btn btn-primary">Salva</button>
         </div>
+        </form>
       </div>
     </div>
   </div>

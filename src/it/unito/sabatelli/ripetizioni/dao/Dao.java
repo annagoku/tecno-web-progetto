@@ -92,6 +92,7 @@ public class Dao {
   public static String CHECK_NEW_TEACHER="SELECT COUNT(t.BADGENUMBER) FROM TEACHER t WHERE t.BADGENUMBER=?";
   public static String FIND_NEW_COURSE_FOR_TEACHER="SELECT c.COURSECODE, c.COURSENAME, c.ICON, c.ACTIVE FROM COURSE c WHERE c.ACTIVE=1 AND c.COURSENAME NOT IN (SELECT c.COURSENAME FROM TEACHER_COURSE TC, COURSE c, TEACHER t WHERE tc.COURSECODE=c.COURSECODE " +
           "AND tc.BADGENUMBER=t.BADGENUMBER AND t.BADGENUMBER=?)";
+  public static String INSERT_NEW_ASSOCIATION="INSERT INTO TEACHER_COURSE (COURSECODE, BADGENUMBER, ACTIVE) VALUES (?,?,1)";
 
   boolean initialized = false;
   String url;
@@ -647,6 +648,31 @@ public int saveNewTeacher(String badge, String name, String surname, String avat
     }
     return list;
 
+  }
+
+  public int saveNewAssociation(String coursecode, String badgenumber) throws  SQLException {
+    checkInit();
+    Connection conn = null;
+
+    try {
+      conn = getConnection();
+
+      PreparedStatement ps = conn.prepareStatement(INSERT_NEW_ASSOCIATION);
+      ps.setString(1, coursecode);
+      ps.setString(2, badgenumber);
+
+      int rows = ps.executeUpdate();
+      System.out.println("saveNewAssociation - row inserted "+rows);
+
+      return rows;
+
+    }catch (SQLException e) {
+      e.getMessage();
+      throw  e;
+    }
+    finally {
+      safeCloseConnection(conn);
+    }
   }
 
 

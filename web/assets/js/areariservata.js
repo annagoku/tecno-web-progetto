@@ -57,7 +57,7 @@ var areaRiservataApp= new Vue ({
             badge: null,
             name: null,
             surname: null,
-            avatar: null,
+            avatar: 'assets/img/soldier.png',
             errorMessageBadge : null,
             errorMessageName: null,
             errorMessageSurname: null,
@@ -68,8 +68,9 @@ var areaRiservataApp= new Vue ({
             teacher: [],
             courseToMatch: [],
             teacherSelected: null,
-            courseSelected: null,
-            errorMessageSelection: null,
+            courseSelected: '-',
+            errorMessageSelectionTeacher: null,
+            errorMessageSelectionCourse: null,
             errorMessageServer: null
         }
     },
@@ -363,7 +364,6 @@ var areaRiservataApp= new Vue ({
 
         getTeachersAdmin: function (callback) {
             var self=this;
-            this.tabActive = "teachers";
             $.get(HOMEURL + 'public/teachers?filter=admin', function (data) {
                 //se ok
                 self.teacherAdmin=data;
@@ -423,6 +423,11 @@ var areaRiservataApp= new Vue ({
         clickFabAdmin: function () {
             switch (this.tabActive) {
                 case "associations":
+                    this.modalInsertAssociation.teacherSelected='-';
+                    this.modalInsertAssociation.courseSelected='-';
+                    this.modalInsertAssociation.errorMessageSelectionTeacher=null;
+                    this.modalInsertAssociation.errorMessageSelectionCourse=null;
+                    this.modalInsertAssociation.errorMessageServer=null
                     var self = this;
                     this.getTeachersAdmin(
                         function () {
@@ -447,7 +452,7 @@ var areaRiservataApp= new Vue ({
                     this.modalInsertTeacher.badge=null;
                     this.modalInsertTeacher.name=null;
                     this.modalInsertTeacher.surname=null;
-                    this.modalInsertTeacher.avatar=null;
+                    this.modalInsertTeacher.avatar='assets/img/soldier.png';
                     this.modalInsertTeacher.errorMessageBadge=null;
                     this.modalInsertTeacher.errorMessageName=null;
                     this.modalInsertTeacher.errorMessageSurname=null;
@@ -569,6 +574,7 @@ var areaRiservataApp= new Vue ({
             var badge = e.target.value;
             var self = this;
             if(badge != '-') {
+                this.modalInsertAssociation.teacherSelected=badge;
                 $.get(SERVERURL + 'courseList?badge=' + badge, function (data) {
                     console.log("Select new course for teacher selected -> " + JSON.stringify(data));
 
@@ -580,9 +586,43 @@ var areaRiservataApp= new Vue ({
 
                 });
             }
-
             console.log("Selected teacher badge -> " + badge);
+        },
 
+        saveNewAssociation: function (e) {
+            e.preventDefault();
+            this.modalInsertAssociation.errorMessageSelectionTeacher=null;
+            this.modalInsertAssociation.errorMessageSelectionCourse=null;
+            var self=this;
+            if(this.modalInsertAssociation.teacherSelected==null || this.modalInsertAssociation.teacherSelected== '-'){
+                this.modalInsertAssociation.errorMessageSelectionTeacher="Selezionare un'insegnate";
+                return;
+            }
+            if(this.modalInsertAssociation.courseSelected==null || this.modalInsertAssociation.courseSelected== '-'){
+                this.modalInsertAssociation.errorMessageSelectionCourse="Selezionare un corso tra quelli proposti";
+                return;
+            }
+            $.post(SERVERURL + 'courselist', {
+                badgeNumber: this.modalInsertAssociation.teacherSelected,
+                codCourse: this.modalInsertAssociation.courseSelected
+            }, function (data) {
+                console.log("InsertNewAssociation -> " + JSON.stringify(data));
+                //se ko
+                self.response=data;
+                if (!self.response.result) {
+                    self.modalInsertAssociation.errorMessageServer=self.response.errorOccurred;
+                } else {
+                    $('#insertAssociation').modal('hide');
+                    self.getAssociationsAdmin();
+                }
+            }).fail(function (xhr) {
+                console.log("Save new association teacher - course error code " + xhr.status);
+                //alert("Errore nel salvataggio di un nuovo corso  -> status " + xhr.status);
+                var response =JSON.parse(xhr.responseText);
+
+                self.modalInsertAssociation.errorMessageServer = response.errorOccurred;
+
+            });
         }
 
     }

@@ -1,6 +1,7 @@
 package it.unito.sabatelli.ripetizioni.model;
 
 public class CatalogItem {
+
   Slot slot;
   Day day;
   Course course;
@@ -38,6 +39,7 @@ public class CatalogItem {
   public void setTeacher(Teacher teacher) {
     this.teacher = teacher;
   }
+
 
   public boolean isSelected() {
     return selected;

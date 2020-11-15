@@ -25,11 +25,14 @@ var areaRiservataApp= new Vue ({
             selectedLesson : null,
             wantConfirm: false,
             wantCancel: false,
-            errorMessage: null,
+            errorMessage: null
         },
         modalNewReservation : {
+            users: [],
             courses: [],
             matrix: null,
+            userSelected: '-',
+            courseSelected: '-',
             errorMessage: null,
             reservationSelected: null
         },
@@ -40,9 +43,10 @@ var areaRiservataApp= new Vue ({
         //VARIABILI AMMINISTRATORE
         courseAdmin: [],
         teacherAdmin: [],
+        userAdmin:[],
         associationsAdmin: [],
         lessonsAdmin: [],
-        tabActive: null,
+        tabActive: "courses",
 
         modalInsertCourse: {
             code: null,
@@ -72,7 +76,11 @@ var areaRiservataApp= new Vue ({
             errorMessageSelectionTeacher: null,
             errorMessageSelectionCourse: null,
             errorMessageServer: null
+        },
+        alert: {
+            message: ""
         }
+
     },
     mounted: function () {
         this.getSessionInfo();
@@ -91,6 +99,11 @@ var areaRiservataApp= new Vue ({
                 alert("Impossibile reperire le informazioni delle lezioni!");
 
             });
+        },
+
+        showAlert: function (message) {
+            this.alert.message = message;
+            $("#alertDialog").modal('show');
         },
 
 //recupera le informazioni sull'utente che ha fatto login
@@ -220,6 +233,7 @@ var areaRiservataApp= new Vue ({
 //apertura di una modale con selezione della materia di interesse e visualizzazione delle disponibilità
         showModalNewReservation: function () {
             var self = this;
+            this.modalNewReservation.courseSelected = '-';
             this.modalNewReservation.courses = [];
             this.modalNewReservation.matrix = null;
             this.modalNewReservation.errorMessage = null;
@@ -237,9 +251,27 @@ var areaRiservataApp= new Vue ({
 
 //selezionata la materia permette di caricarne su timetable le disponibilità
         onSelectCourse: function (e) {
-            var code = e.target.value;
+            var codeMat = this.modalNewReservation.courseSelected;
+            var idUser = this.modalNewReservation.userSelected;
             var self = this;
-            $.get(SERVERURL + 'courseavailability?courseCode=' + code, function (data) {
+            console.log("Selected course code -> " + codeMat);
+
+            if(this.user.role == 'administrator') {
+                console.log("Selected user id -> " + idUser);
+                if((codeMat == null || codeMat == '-') || (idUser == null || idUser == '-')) {
+                    this.modalNewReservation.matrix = [];
+                    return;
+                }
+            }
+            else {
+                //UTENTE
+                if((codeMat == null || codeMat == '-') ) {
+                    this.modalNewReservation.matrix = [];
+                    return;
+                }
+            }
+
+            $.get(SERVERURL + 'courseavailability?courseCode=' + codeMat, function (data) {
                 console.log("Select availability course -> " + JSON.stringify(data));
 
                 self.modalNewReservation.matrix = data;
@@ -249,7 +281,6 @@ var areaRiservataApp= new Vue ({
                 self.modalNewReservation.errorMessage = "Si è verificato un errore";
 
             });
-            console.log("Selected course code -> " + code);
 
         },
 //selezione di una nuova prenotazione tramite click su timetable
@@ -272,38 +303,67 @@ var areaRiservataApp= new Vue ({
 
             this.modalCheckReservation.feedbackMessage=null;
             if(this.modalNewReservation.reservationSelected) {
-                i = this.modalNewReservation.reservationSelected.slot.id - 1;
-                j = this.modalNewReservation.reservationSelected.day.daycode - 1;
-                console.log("checkFeasibility i: "+i+", j: "+j);
-                if (this.lessonsMatrix[i][j].length > 0) {
-                    console.log(this.lessonsMatrix[i][j]);
-                    this.modalCheckReservation.state = 3;
-                    for(var k=0; k<this.lessonsMatrix[i][j].length; k++) {
-                        if(this.lessonsMatrix[i][j][k].state.code !== '3') {
-                            this.modalCheckReservation.state = this.lessonsMatrix[i][j][k].state.code;
+                if(this.user.role == 'student') {
+                    i = this.modalNewReservation.reservationSelected.slot.id - 1;
+                    j = this.modalNewReservation.reservationSelected.day.daycode - 1;
+                    console.log("checkFeasibility i: "+i+", j: "+j);
+                    if (this.lessonsMatrix[i][j].length > 0) {
+                        console.log(this.lessonsMatrix[i][j]);
+                        this.modalCheckReservation.state = 3;
+                        for(var k=0; k<this.lessonsMatrix[i][j].length; k++) {
+                            if(this.lessonsMatrix[i][j][k].state.code !== '3') {
+                                this.modalCheckReservation.state = this.lessonsMatrix[i][j][k].state.code;
+                            }
                         }
-                    }
 
-                    switch (this.modalCheckReservation.state) {
-                        case 1:
-                            $('#modalCheckFeasibility').modal('show');
-                            return this.modalCheckReservation.feedbackMessage = "Hai già una prenotazione nello slot scelto. Vuoi annullare e sovrascrivere?";
-                        case 2 :
-                            $('#modalCheckFeasibility').modal('show');
-                            return this.modalCheckReservation.feedbackMessage = "Hai già una prenotazione effettuata nello slot scelto. Impossibile sostituire una prenotazione effettuata";
-                        case 3:
-                            console.log("checkFeasibility -> posso effettuare la prenotazione");
-                            return this.saveNewReservation();
+                        switch (this.modalCheckReservation.state) {
+                            case 1:
+                                $('#modalCheckFeasibility').modal('show');
+                                return this.modalCheckReservation.feedbackMessage = "Hai già una prenotazione nello slot scelto. Vuoi annullare e sovrascrivere?";
+                            case 2 :
+                                $('#modalCheckFeasibility').modal('show');
+                                return this.modalCheckReservation.feedbackMessage = "Hai già una prenotazione effettuata nello slot scelto. Impossibile sostituire una prenotazione effettuata";
+                            case 3:
+                                console.log("checkFeasibility -> posso effettuare la prenotazione");
+                                return this.saveNewReservation();
 
+                        }
+                    } else {
+                        console.log("checkFeasibility -> posso effettuare la prenotazione");
+                        return this.saveNewReservation();
                     }
-                } else {
-                    console.log("checkFeasibility -> posso effettuare la prenotazione");
-                    return this.saveNewReservation();
                 }
+                else {
+                    this.saveNewReservationAdmin();
+                }
+
             }else{
                 this.modalNewReservation.errorMessage="Seleziona un lezione da prenotare o annulla";
             }
         },
+
+        switchTab: function(tab) {
+            switch (tab) {
+                case 'courses':
+                    this.tabActive="courses";
+                    this.getCourses(null);
+                    break;
+                case 'teachers':
+                    this.tabActive="teachers";
+                    this.getTeachersAdmin(null);
+                    break;
+                case 'associations':
+                    this.tabActive="associations";
+                    this.getAssociationsAdmin();
+                    break;
+                case 'lessons':
+                    this.tabActive="lessons";
+                    this.getLessonAdmin()
+                    break;
+
+            }
+        },
+
 
 //Salvataggio nuova prenotazione su db
         saveNewReservation: function () {
@@ -317,14 +377,39 @@ var areaRiservataApp= new Vue ({
                 console.log("CheckNewReservation -> " + JSON.stringify(data));
                 //se ko
                 if (!data.result) {
-                    alert(data.errorMessage);
+                    self.showAlert(data.errorMessage);
                 } else {
                     $('#modalNew').modal('hide');
                     self.getLessons();
                 }
             }).fail(function (xhr) {
                 console.log("Save new lesson error code " + xhr.status);
-                alert("Errore nel salvataggio nuova prenotazione  -> status " + xhr.status);
+                self.showAlert("Errore nel salvataggio nuova prenotazione  -> status " + xhr.status);
+
+            });
+        },
+
+        saveNewReservationAdmin: function () {
+            console.log("saveNewReservationAdmin");
+            var self=this;
+            this.modalNewReservation.reservationSelected.selected = false;
+            $.post(SERVERURL + 'newReservation', {
+                infoCatalogItemSelected: JSON.stringify(this.modalNewReservation.reservationSelected),
+                userId: this.modalNewReservation.userSelected
+            }, function (data) {
+                console.log("CheckNewReservation -> " + JSON.stringify(data));
+                //se ko
+                if (!data.result) {
+                    self.showAlert(data.errorMessage);
+                } else {
+                    $('#modalNew').modal('hide');
+                    self.getLessonsAdmin();
+                }
+            }).fail(function (xhr) {
+                console.log("Save new lesson error code " + xhr.status);
+                console.log("Save new lesson response text " + xhr.responseText);
+                var response = JSON.parse(xhr.responseText);
+                self.showAlert(response.errorOccurred);
 
             });
         },
@@ -338,7 +423,7 @@ var areaRiservataApp= new Vue ({
                 if (data.result == true) {
                     document.location.href = HOMEURL;
                 } else {
-                    alert(data.errorMessage);
+                    self.showAlert(data.errorMessage);
                 }
             }).fail(function (xhr) {
                 alert("Errore sul logout -> status " + xhr.status);
@@ -346,18 +431,20 @@ var areaRiservataApp= new Vue ({
         },
 
         //AREA RISERVATA ADMINISTRATOR
-        getCourses: function () {
-            this.tabActive = "courses";
+        getCourses: function (callback) {
+
             var self = this;
 
             $.get(HOMEURL + 'public/courses?filter=admin', function (data) {
                 //se ok
                 self.courseAdmin=data;
                 console.log("courseadmin -> " + JSON.stringify(data));
+                if(callback)
+                    callback();
 
 
             }).fail(function (xhr) {
-                alert("Errore caricamento corsi -> status " + xhr.status);
+                self.showAlert("Errore caricamento corsi -> status " + xhr.status);
             });
 
         },
@@ -372,26 +459,26 @@ var areaRiservataApp= new Vue ({
                     callback();
 
             }).fail(function (xhr) {
-                alert("Errore caricamento insegnanti -> status " + xhr.status);
+                self.showAlert("Errore caricamento insegnanti -> status " + xhr.status);
             });
         },
 
         getAssociationsAdmin: function () {
             var self=this;
-            this.tabActive = "associations";
+
             $.get(SERVERURL + 'associationsadmin', function (data) {
                 //se ok
                 self.associationsAdmin=data;
                 console.log("courses & teacheradmin -> " + JSON.stringify(data));
 
             }).fail(function (xhr) {
-                alert("Errore caricamento associazioni docenti e corsi -> status " + xhr.status);
+                self.showAlert("Errore caricamento associazioni docenti e corsi -> status " + xhr.status);
             });
         },
 
         getLessonAdmin: function () {
             var self=this;
-            this.tabActive = "lessons";
+
 
             $.get(SERVERURL + 'lessons', function (data) {
                 //se ok
@@ -399,14 +486,27 @@ var areaRiservataApp= new Vue ({
                 console.log("Lessons -> " + JSON.stringify(data));
 
             }).fail(function (xhr) {
-                alert("Errore caricamento delle prenotazioni -> status " + xhr.status);
+                self.showAlert("Errore caricamento delle prenotazioni -> status " + xhr.status);
+            });
+        },
+        getUserAdmin: function (callback) {
+            var self = this;
+            $.get(SERVERURL + 'userlist', function (data) {
+                //se ok
+                console.log("user List -> " + JSON.stringify(data));
+                self.userAdmin=data;
+                if(callback)
+                    callback();
+
+            }).fail(function (xhr) {
+                self.showAlert("Errore nella lettura lista user -> status " + xhr.status);
             });
         },
 
         refresh: function(p){
             switch (p) {
                 case 1:
-                    this.getCourses();
+                    this.getCourses(null);
                     break;
                 case 2:
                     this.getTeachersAdmin(null);
@@ -435,6 +535,7 @@ var areaRiservataApp= new Vue ({
                             $('#insertAssociation').modal('show');
                         }
                     );
+
                     break;
                 case "courses":
                     this.modalInsertCourse.code=null;
@@ -446,7 +547,23 @@ var areaRiservataApp= new Vue ({
                     $('#insertCourse').modal('show');
                     break;
                 case "lessons":
-                    $('#insertNewReservation').modal('show');
+                    var self=this;
+                    this.modalNewReservation.courseSelected = '-';
+                    this.modalNewReservation.userSelected = '-';
+                    this.getUserAdmin(
+                        function () {
+                            self.modalNewReservation.users = self.userAdmin;
+
+                        }
+
+                    );
+                    this.getCourses(
+                        function () {
+                            self.modalNewReservation.courses=self.courseAdmin;
+                            $('#modalNew').modal('show');
+                        }
+                    );
+
                     break;
                 case "teachers":
                     this.modalInsertTeacher.badge=null;
@@ -509,7 +626,6 @@ var areaRiservataApp= new Vue ({
                 self.modalInsertCourse.errorMessageServer = response.errorOccurred;
 
             });
-
 
         },
 
@@ -623,6 +739,22 @@ var areaRiservataApp= new Vue ({
                 self.modalInsertAssociation.errorMessageServer = response.errorOccurred;
 
             });
+        },
+        onSelectUserCourse : function (e) {
+            var self=this;
+            if(this.modalInsertReservationAdmin.userSelected!='-' && this.modalInsertReservationAdmin.courseSelected!='-'){
+                $.get(SERVERURL + 'user?userid=' + self.modalInsertReservationAdmin.userSelected &'coursecode='+ self.modalInsertReservationAdmin.courseSelected , function (data) {
+                    console.log("Select new reservation for user and course selected -> " + JSON.stringify(data));
+
+                    self.modalInsertReservation.reservationAvailable = data;
+
+                }).fail(function (xhr) {
+                    console.log("Retrieve new reservation available " + xhr.status);
+                    self.modalInserReservation.errorMessage = "Si è verificato un errore";
+
+                });
+
+            }
         }
 
     }

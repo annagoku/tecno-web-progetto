@@ -65,10 +65,12 @@ public class LessonsServlet extends HttpServlet {
 
     }
 
-    private void processRequest (HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
+    private void
+    processRequest (HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
       response.setContentType("application/json");
       Gson gson = new Gson();
 
+      boolean listFormat = request.getParameter("list") != null;
 
       try {
         User user = (User) request.getSession().getAttribute("user");
@@ -83,7 +85,7 @@ public class LessonsServlet extends HttpServlet {
           }
         }
 
-        if(!user.getRole().equalsIgnoreCase("administrator")) {
+        if(!user.getRole().equalsIgnoreCase("administrator") && !listFormat) {
           //todo leggere le dimensioni da DB
 
 

@@ -76,6 +76,10 @@ public class ControllerServlet extends HttpServlet {
         case "/private/courselist":
           request.getServletContext().getNamedDispatcher("GetNewCourseForTeacher").forward(request, response);
           return;
+
+        case "/private/userlist":
+          request.getServletContext().getNamedDispatcher("GetUserList").forward(request, response);
+          return;
       }
     }
     else {

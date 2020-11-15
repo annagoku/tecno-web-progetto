@@ -11,15 +11,23 @@ public class User {
 
   public User (){}
 
-  public User (String id, String user, String name, String surname, String email){
+  public User (String id, String user, String email){
     this.id=id;
     this.username=user;
     this.email=email;
   }
 
-  public User (String id, String user, String psw, String name, String surname, String email){
+  public User (String id,  String name, String surname, String user){
     this.id=id;
     this.username=user;
+    this.name=name;
+    this.surname=surname;
+  }
+  public User (String id, String user, String name, String surname, String email){
+    this.id=id;
+    this.username=user;
+    this.name=name;
+    this.surname=surname;
     this.email=email;
   }
 

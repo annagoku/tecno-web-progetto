@@ -2,10 +2,7 @@ package it.unito.sabatelli.ripetizioni.web.servlet;
 
 import com.google.gson.Gson;
 import it.unito.sabatelli.ripetizioni.dao.Dao;
-import it.unito.sabatelli.ripetizioni.model.CatalogItem;
-import it.unito.sabatelli.ripetizioni.model.GenericResponse;
-import it.unito.sabatelli.ripetizioni.model.Lesson;
-import it.unito.sabatelli.ripetizioni.model.User;
+import it.unito.sabatelli.ripetizioni.model.*;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -46,7 +43,22 @@ public class NewReservationServlet extends HttpServlet {
       Dao dao = (Dao) request.getServletContext().getAttribute(Dao.DAONAME);
       CatalogItem itemSelected= gson.fromJson(request.getParameter("infoCatalogItemSelected"),CatalogItem.class);
 
-      Lesson l= dao.checkLesson(user.getId(), itemSelected.getDay().getDaycode(), itemSelected.getSlot().getId());
+      String userIdSelected = request.getParameter("userId");
+
+      if(userIdSelected != null && !user.getRole().equalsIgnoreCase("administrator")) {
+        gr.setResult(false);
+        gr.setErrorOccurred("Non si hanno i permessi per inserire una prenotazione");
+        String json = gson.toJson(gr);
+        response.getWriter().write(json);
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        return;
+      }
+
+      if(user.getRole().equalsIgnoreCase("student")) {
+        userIdSelected = user.getId();
+      }
+
+      Lesson l= dao.checkLesson(userIdSelected, itemSelected.getDay().getDaycode(), itemSelected.getSlot().getId());
 
       if (l!= null && l.getState().getCode()==2){
         gr.setResult(false);
@@ -56,9 +68,17 @@ public class NewReservationServlet extends HttpServlet {
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         return;
       }
+      else if(user.getRole().equalsIgnoreCase("administrator") && l!= null && l.getState().getCode() <3){
+        gr.setResult(false);
+        gr.setErrorOccurred("Esiste già una lezione prenotata o effettuata nello slot scelto");
+        String json = gson.toJson(gr);
+        response.getWriter().write(json);
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        return;
+      }
 
 
-      dao.saveNewReservation(itemSelected, user, l);
+      dao.saveNewReservation(itemSelected, userIdSelected, l);
       gr.setResult(true);
       String json = gson.toJson(gr);
       response.getWriter().write(json);

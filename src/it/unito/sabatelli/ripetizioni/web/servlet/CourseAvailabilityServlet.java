@@ -5,6 +5,7 @@ import it.unito.sabatelli.ripetizioni.dao.Dao;
 import it.unito.sabatelli.ripetizioni.model.CatalogItem;
 import it.unito.sabatelli.ripetizioni.model.Course;
 import it.unito.sabatelli.ripetizioni.model.GenericResponse;
+import it.unito.sabatelli.ripetizioni.model.User;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;

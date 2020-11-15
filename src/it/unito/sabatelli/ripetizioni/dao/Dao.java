@@ -93,6 +93,9 @@ public class Dao {
   public static String FIND_NEW_COURSE_FOR_TEACHER="SELECT c.COURSECODE, c.COURSENAME, c.ICON, c.ACTIVE FROM COURSE c WHERE c.ACTIVE=1 AND c.COURSENAME NOT IN (SELECT c.COURSENAME FROM TEACHER_COURSE TC, COURSE c, TEACHER t WHERE tc.COURSECODE=c.COURSECODE " +
           "AND tc.BADGENUMBER=t.BADGENUMBER AND t.BADGENUMBER=?)";
   public static String INSERT_NEW_ASSOCIATION="INSERT INTO TEACHER_COURSE (COURSECODE, BADGENUMBER, ACTIVE) VALUES (?,?,1)";
+  public static String QUERY_USER_ADMIN="SELECT u.IDUSER, u.NAME, u.SURNAME, u.USERNAME FROM USER u, USER_ROLE ur, ROLE r WHERE u.IDUSER=ur.IDUSER AND "+
+          "ur.ROLECODE=r.ROLECODE AND r.ROLENAME='student'";
+  public String QUERY_USER_COURSE_RESERVATION_ADMIN= QUERY_COURSE_AVAILABILITY + " NOT IN " + QUERY_LESSONS_USER;
 
   boolean initialized = false;
   String url;
@@ -200,20 +203,18 @@ public class Dao {
     ArrayList<CatalogItem> list = new ArrayList<>();
     try {
       conn = getConnection();
-
-      PreparedStatement ps= conn.prepareStatement(QUERY_COURSE_AVAILABILITY);
-      ps.setString(1, courseCode);
-      ResultSet rs=ps.executeQuery();
-      while (rs.next()) {
-        CatalogItem c = new CatalogItem();
-        c.setDay(new Day(rs.getInt("daycode"), rs.getString("dayname")));
-        c.setCourse( new Course(rs.getString("coursecode"),rs.getString("coursename"), rs.getString("icon")));
-        c.setSlot(new Slot(rs.getInt("idslot"), rs.getString("startslot"), rs.getString("endslot")));
-        c.setTeacher(new Teacher(rs.getString("badgenumber"), rs.getString("name"), rs.getString("surname"), rs.getString("avatar")));
-        list.add(c);
-      }
-      rs.close();
-
+        PreparedStatement ps = conn.prepareStatement(QUERY_COURSE_AVAILABILITY);
+        ps.setString(1, courseCode);
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+          CatalogItem c = new CatalogItem();
+          c.setDay(new Day(rs.getInt("daycode"), rs.getString("dayname")));
+          c.setCourse(new Course(rs.getString("coursecode"), rs.getString("coursename"), rs.getString("icon")));
+          c.setSlot(new Slot(rs.getInt("idslot"), rs.getString("startslot"), rs.getString("endslot")));
+          c.setTeacher(new Teacher(rs.getString("badgenumber"), rs.getString("name"), rs.getString("surname"), rs.getString("avatar")));
+          list.add(c);
+        }
+        rs.close();
     }
     finally {
       safeCloseConnection(conn);
@@ -438,7 +439,7 @@ public class Dao {
   }
 
   //inserimento nuova prenotazione profilo studente
-  public int saveNewReservation(CatalogItem item, User user, Lesson lessonToCancel) throws  SQLException {
+  public int saveNewReservation(CatalogItem item, String userId, Lesson lessonToCancel) throws  SQLException {
     checkInit();
     Connection conn = null;
     try {
@@ -455,7 +456,7 @@ public class Dao {
       }
 
       PreparedStatement ps = conn.prepareStatement(INSERT_NEW_LESSON);
-      ps.setInt(1, Integer.parseInt(user.getId()));
+      ps.setInt(1, Integer.parseInt(userId));
       ps.setString(2, item.getCourse().getCode() );
       ps.setString(3, item.getTeacher().getBadge());
       ps.setInt(4, item.getSlot().getId());
@@ -673,6 +674,28 @@ public int saveNewTeacher(String badge, String name, String surname, String avat
     finally {
       safeCloseConnection(conn);
     }
+  }
+
+  public ArrayList<User> getUserListAdmin() throws SQLException{
+    checkInit();
+    Connection conn = null;
+    ArrayList<User> listUser = new ArrayList<>();
+    try {
+      conn = getConnection();
+
+      Statement st = conn.createStatement();
+      ResultSet rs = st.executeQuery(QUERY_USER_ADMIN);
+      while (rs.next()) {
+        User u = new User(rs.getString("iduser"), rs.getString("name"), rs.getString("surname"), rs.getString("username"));
+        listUser.add(u);
+      }
+      rs.close();
+
+    } finally {
+      safeCloseConnection(conn);
+    }
+    return listUser;
+
   }
 
 

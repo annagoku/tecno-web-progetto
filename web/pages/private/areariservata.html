@@ -169,7 +169,7 @@
                     <td class="align-middle">{{t.surname}}</td>
                     <td class="align-middle">{{t.avatar}}  <img style="zoom: 50%" v-bind:src="('../'+t.avatar)"></td>
                     <td class="align-middle">{{t.state}}</td>
-                    <td class="align-middle"><button v-if="(t.statecode == 1)" type="button" class="btn btn-warning btn-sm"><i class="fas fa-trash-alt"></i></button></td>
+                    <td class="align-middle"><button v-if="(t.statecode == 1)" type="button" class="btn btn-warning btn-sm" v-on:click="changeStateTeacher(t)"><i class="fas fa-trash-alt"></i></button></td>
                   </tr>
                   <tr v-if="(teacherAdmin.length == 0)">
                     <td colspan="6" class="text-center">Nessun insegnante presente</td>
@@ -179,6 +179,31 @@
               </div>
             </div>
           </div>
+          <!-- MODAL DELETE  TEACHERS ADMIN -->
+          <div class="modal" id="deleteTeacher" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Cancellazione Insegnante</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <p>{{modalDeleteTeacher.warningMessage}}</p>
+                  <small class="text-danger" v-if="modalDeleteTeacher.errorMessage">{{modalDeleteTeacher.errorMessage}}</small>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
+                  <button type="button" class="btn btn-primary" v-on:click="saveDeleteTeacher()">Salva</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+
+
           <!-- COURSES & TEACHERS ADMIN -->
           <div class="tab-pane fade" id="nav-courseteacher" role="tabpanel" aria-labelledby="nav-contact-tab">
             <div class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3 ">
@@ -216,6 +241,7 @@
             </div>
           </div>
 
+          <!-- MODAL DELETE COURSES & TEACHERS ADMIN -->
           <div class="modal" id="deleteAssociation" tabindex="-1" role="dialog">
             <div class="modal-dialog" role="document">
               <div class="modal-content">
@@ -231,7 +257,7 @@
                 </div>
                 <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
-                  <button type="button" class="btn btn-primary" v-on:click="saveChangeStateAssociation()">Salva</button>
+                  <button type="button" class="btn btn-primary" v-on:click="saveDeleteAssociation()">Salva</button>
                 </div>
               </div>
             </div>

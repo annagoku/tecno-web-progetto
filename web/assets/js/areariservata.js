@@ -84,7 +84,18 @@ var areaRiservataApp= new Vue ({
             associationSelected: null,
             warningMessage: null,
             errorMessage:null
+        },
+        modalDeleteTeacher: {
+            teacherSelected: null,
+            warningMessage: null,
+            errorMessage: null
+        },
+        modalDeleteCourse: {
+            courseSelected: null,
+            warningMessage: null,
+            errorMessage: null
         }
+
 
     },
     mounted: function () {
@@ -752,11 +763,10 @@ var areaRiservataApp= new Vue ({
             $('#deleteAssociation').modal('show');
 
         },
-        saveChangeStateAssociation : function () {
+        saveDeleteAssociation : function () {
             var self=this;
-
             $.post(SERVERURL + 'deleteassociation', {
-                associationToDelete: JSON.stringify(this.modalDeleteAssociation.associationSelected),
+                associationToDelete: JSON.stringify(this.modalDeleteAssociation.associationSelected)
             }, function (data) {
                 console.log("Delete association -> " + JSON.stringify(data));
                 //se ko
@@ -774,6 +784,33 @@ var areaRiservataApp= new Vue ({
 
             });
 
+        },
+        changeStateTeacher : function (t) {
+            this.modalDeleteTeacher.teacherSelected=t;
+            this.modalDeleteTeacher.warningMessage="Attenzione: la cancellazione del docente " +
+                "selezionato potrebbe comportare la cancellazione di prenotazioni effettuate. Vuoi Procedere?"
+            $('#deleteTeacher').modal('show');
+
+        },
+        saveDeleteTeacher : function () {
+            var self=this;
+            $.post(SERVERURL + 'deleteteacher', {
+                teacherToDelete: JSON.stringify(this.modalDeleteTeacher.teacherSelected)
+            }, function (data) {
+                console.log("Delete teacher -> " + JSON.stringify(data));
+                //se ko
+                if (!data.result) {
+                    self.modalDeleteTeacher.errorMessage=data.errorOccurred;
+                } else {
+                    $('#deleteTeacher').modal('hide');
+                    self.getTeachersAdmin();
+                }
+            }).fail(function (xhr) {
+                console.log("Delete teacher error code " + xhr.status);
+                console.log("Delete teacher response text " + xhr.responseText);
+                var response = JSON.parse(xhr.responseText);
+                self.modalDeleteTeacher.errorMessage=response;
+            });
         }
 
     }

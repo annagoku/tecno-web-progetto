@@ -14,8 +14,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@WebServlet(name="ChangeStateAssociationAdmin", urlPatterns = "/servlets/ChangeStateAssociationAdmin")
-public class ChangeStateAssociationServletAdmin extends HttpServlet {
+@WebServlet(name="DeleteAssociationAdmin", urlPatterns = "/servlets/DeleteAssociationAdmin")
+public class DeleteAssociationAdminServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     resp.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
@@ -23,10 +23,10 @@ public class ChangeStateAssociationServletAdmin extends HttpServlet {
 
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    processeRequestPost(req, resp);
+    processRequestPost(req, resp);
   }
 
-  public void processeRequestPost (HttpServletRequest request, HttpServletResponse response) throws javax.servlet.ServletException, IOException {
+  public void processRequestPost (HttpServletRequest request, HttpServletResponse response) throws javax.servlet.ServletException, IOException {
     response.setContentType("application/json");
     Gson gson = new Gson();
     GenericResponse gresp= new GenericResponse();
@@ -45,7 +45,7 @@ public class ChangeStateAssociationServletAdmin extends HttpServlet {
         Dao dao = (Dao) request.getServletContext().getAttribute(Dao.DAONAME);
         TeacherCourse tc=gson.fromJson(request.getParameter("associationToDelete"), TeacherCourse.class);
         if (tc!=null){
-          int row=dao.deleteAssociation(tc);
+          int row=dao.deleteAssociationAdmin(tc);
           gresp.setResult(true);
           response.setStatus(HttpServletResponse.SC_OK);
           response.getWriter().write(gson.toJson(gresp));

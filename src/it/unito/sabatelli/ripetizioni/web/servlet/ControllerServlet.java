@@ -82,7 +82,15 @@ public class ControllerServlet extends HttpServlet {
           return;
 
         case "/private/deleteassociation":
-          request.getServletContext().getNamedDispatcher("ChangeStateAssociationAdmin").forward(request, response);
+          request.getServletContext().getNamedDispatcher("DeleteAssociationAdmin").forward(request, response);
+          return;
+
+        case "/private/deleteteacher":
+          request.getServletContext().getNamedDispatcher("DeleteTeacherAdmin").forward(request, response);
+          return;
+
+        case "/private/deletecourse":
+          request.getServletContext().getNamedDispatcher("DeleteCourseAdmin").forward(request, response);
           return;
 
       }

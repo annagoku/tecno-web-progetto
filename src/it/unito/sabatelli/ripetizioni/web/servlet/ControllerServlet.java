@@ -80,6 +80,11 @@ public class ControllerServlet extends HttpServlet {
         case "/private/userlist":
           request.getServletContext().getNamedDispatcher("GetUserList").forward(request, response);
           return;
+
+        case "/private/deleteassociation":
+          request.getServletContext().getNamedDispatcher("ChangeStateAssociationAdmin").forward(request, response);
+          return;
+
       }
     }
     else {

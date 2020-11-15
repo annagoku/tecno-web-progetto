@@ -79,6 +79,11 @@ var areaRiservataApp= new Vue ({
         },
         alert: {
             message: ""
+        },
+        modalDeleteAssociation: {
+            associationSelected: null,
+            warningMessage: null,
+            errorMessage:null
         }
 
     },
@@ -740,21 +745,35 @@ var areaRiservataApp= new Vue ({
 
             });
         },
-        onSelectUserCourse : function (e) {
+        changeStateAssociation : function (tc) {
+            this.modalDeleteAssociation.associationSelected=tc;
+            this.modalDeleteAssociation.warningMessage="Attenzione: la cancellazione della associazione " +
+                "selezionata potrebbe comportare la cancellazione di prenotazioni effettuate. Vuoi Procedere?"
+            $('#deleteAssociation').modal('show');
+
+        },
+        saveChangeStateAssociation : function () {
             var self=this;
-            if(this.modalInsertReservationAdmin.userSelected!='-' && this.modalInsertReservationAdmin.courseSelected!='-'){
-                $.get(SERVERURL + 'user?userid=' + self.modalInsertReservationAdmin.userSelected &'coursecode='+ self.modalInsertReservationAdmin.courseSelected , function (data) {
-                    console.log("Select new reservation for user and course selected -> " + JSON.stringify(data));
 
-                    self.modalInsertReservation.reservationAvailable = data;
+            $.post(SERVERURL + 'deleteassociation', {
+                associationToDelete: JSON.stringify(this.modalDeleteAssociation.associationSelected),
+            }, function (data) {
+                console.log("Delete association -> " + JSON.stringify(data));
+                //se ko
+                if (!data.result) {
+                    self.modalDeleteAssociation.errorMessage=data.errorOccurred;
+                } else {
+                    $('#deleteAssociation').modal('hide');
+                    self.getAssociationsAdmin();
+                }
+            }).fail(function (xhr) {
+                console.log("Delete association error code " + xhr.status);
+                console.log("Delete association response text " + xhr.responseText);
+                var response = JSON.parse(xhr.responseText);
+                self.modalDeleteAssociation.errorMessage=response;
 
-                }).fail(function (xhr) {
-                    console.log("Retrieve new reservation available " + xhr.status);
-                    self.modalInserReservation.errorMessage = "Si è verificato un errore";
+            });
 
-                });
-
-            }
         }
 
     }

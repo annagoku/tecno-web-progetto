@@ -26,7 +26,7 @@ public class Dao {
           "FROM (USER JOIN LESSONS JOIN COURSE JOIN TEACHER JOIN SLOTHOURS JOIN DAY JOIN LESSON_STATE) " +
           "WHERE LESSONS.IDUSER=USER.IDUSER AND LESSONS.COURSECODE=COURSE.COURSECODE " +
           "AND LESSONS.BADGENUMBER=TEACHER.BADGENUMBER AND LESSONS.IDSLOT=SLOTHOURS.IDSLOT " +
-          "AND LESSONS.DAYCODE = day.daycode and lessons.statecode = lesson_state.code";
+          "AND LESSONS.DAYCODE = day.daycode and lessons.statecode = lesson_state.code ORDER BY USER.USERNAME";
 
   public static String QUERY_GLOBAL_AVAILABILITY = "select  t.idslot, t.startslot, t.endslot, " +
           "        t.daycode, t.dayname,\n" +
@@ -95,7 +95,8 @@ public class Dao {
   public static String INSERT_NEW_ASSOCIATION="INSERT INTO TEACHER_COURSE (COURSECODE, BADGENUMBER, ACTIVE) VALUES (?,?,1)";
   public static String QUERY_USER_ADMIN="SELECT u.IDUSER, u.NAME, u.SURNAME, u.USERNAME FROM USER u, USER_ROLE ur, ROLE r WHERE u.IDUSER=ur.IDUSER AND "+
           "ur.ROLECODE=r.ROLECODE AND r.ROLENAME='student'";
-  public String QUERY_USER_COURSE_RESERVATION_ADMIN= QUERY_COURSE_AVAILABILITY + " NOT IN " + QUERY_LESSONS_USER;
+  public static String DELETE_ASSOCIATION_ADMIN="UPDATE TEACHER_COURSE tc SET tc.ACTIVE=0 WHERE tc.id=? ";
+  public static String DELETE_LESSON_ADMIN="UPDATE LESSONS l SET l.STATECODE=3 WHERE l.STATECODE=1 AND l.BADGENUMBER=? AND l.COURSECODE=?";
 
   boolean initialized = false;
   String url;
@@ -695,6 +696,43 @@ public int saveNewTeacher(String badge, String name, String surname, String avat
       safeCloseConnection(conn);
     }
     return listUser;
+
+  }
+
+  //cancellazione associazione insegnante corso amministratore
+  public int deleteAssociation(TeacherCourse tc) throws  SQLException {
+    checkInit();
+    Connection conn = null;
+    try {
+      conn = getConnection();
+      conn.setAutoCommit(false);
+
+      if(tc!= null) {
+        PreparedStatement ps = conn.prepareStatement(DELETE_ASSOCIATION_ADMIN);
+        ps.setInt(1, tc.getId());
+
+        int r = ps.executeUpdate();
+        System.out.println("deleteAssociation--> " + tc.getId() + "row updated "+r);
+      }
+
+      PreparedStatement ps = conn.prepareStatement(DELETE_LESSON_ADMIN);
+      ps.setInt(1, Integer.parseInt(tc.getBadge()));
+      ps.setString(2, tc.getCourseCode() );
+
+      int rows = ps.executeUpdate();
+      conn.commit();
+      System.out.println("Delete Association - row update "+rows);
+
+      return rows;
+
+    }catch (SQLException e) {
+      System.out.println("Error "+e.getMessage()+" rolling back");
+      conn.rollback();
+      throw  e;
+    }
+    finally {
+      safeCloseConnection(conn);
+    }
 
   }
 

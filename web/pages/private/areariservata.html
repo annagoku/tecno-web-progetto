@@ -205,7 +205,7 @@
                     <td class="align-middle">{{tc.courseCode}}</td>
                     <td class="align-middle">{{tc.courseName}}</td>
                     <td class="align-middle">{{tc.state}}</td>
-                    <td class="align-middle"><button v-if="(tc.statecode == 1)" type="button" class="btn btn-warning btn-sm"><i class="fas fa-trash-alt"></i></button></td>
+                    <td class="align-middle"><button v-if="(tc.statecode == 1)" type="button" class="btn btn-warning btn-sm" v-on:click="changeStateAssociation(tc)"><i class="fas fa-trash-alt"></i></button></td>
                   </tr>
                   <tr v-if="(associationsAdmin.length == 0)">
                     <td colspan="8" class="text-center">Nessuna associazione presente</td>
@@ -215,6 +215,31 @@
               </div>
             </div>
           </div>
+
+          <div class="modal" id="deleteAssociation" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Cancellazione associazione Insegnante-Corso</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <p>{{modalDeleteAssociation.warningMessage}}</p>
+                  <small class="text-danger" v-if="modalDeleteAssociation.errorMessage">{{modalDeleteAssociation.errorMessage}}</small>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
+                  <button type="button" class="btn btn-primary" v-on:click="saveChangeStateAssociation()">Salva</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+
+
           <!-- LISTA PRENOTAZIONI ADMIN-->
           <div class="tab-pane fade" id="nav-reservation" role="tabpanel" aria-labelledby="nav-contact-tab">
             <div class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3 ">

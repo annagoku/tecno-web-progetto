@@ -136,7 +136,7 @@
                     <td class="align-middle">{{c.name}}</td>
                     <td class="align-middle"><code class="text-primary">{{c.icon}}</code> <i v-bind:class="c.icon"></i></td>
                     <td class="align-middle">{{c.state}}</td>
-                    <td class="align-middle"><button v-if="(c.statecode == 1)" type="button" class="btn btn-warning btn-sm"><i class="fas fa-trash-alt"></i></button></td>
+                    <td class="align-middle"><button v-if="(c.statecode == 1)" type="button" class="btn btn-warning btn-sm" v-on:click="changeStateCourse(c)"><i class="fas fa-trash-alt"></i></button></td>
                   </tr>
                   <tr v-if="(courseAdmin.length == 0)">
                     <td colspan="5" class="text-center">Nessun insegnante presente</td>
@@ -147,6 +147,33 @@
               </div>
             </div>
           </div>
+
+          <!-- MODAL DELETE  TEACHERS ADMIN -->
+          <div class="modal" id="deleteCourse" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Cancellazione Corso</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <p>{{modalDeleteCourse.warningMessage}}</p>
+                  <small class="text-danger" v-if="modalDeleteTeacher.errorMessage">{{modalDeleteCourse.errorMessage}}</small>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
+                  <button type="button" class="btn btn-primary" v-on:click="saveDeleteCourse()">Salva</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+
+
+
           <!-- TEACHERS  ADMIN-->
           <div class="tab-pane fade" id="nav-teachers" role="tabpanel" aria-labelledby="nav-profile-tab">
             <div class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3 ">

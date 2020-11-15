@@ -26,7 +26,7 @@ public class DeleteAssociationAdminServlet extends HttpServlet {
     processRequestPost(req, resp);
   }
 
-  public void processRequestPost (HttpServletRequest request, HttpServletResponse response) throws javax.servlet.ServletException, IOException {
+  private void processRequestPost (HttpServletRequest request, HttpServletResponse response) throws javax.servlet.ServletException, IOException {
     response.setContentType("application/json");
     Gson gson = new Gson();
     GenericResponse gresp= new GenericResponse();

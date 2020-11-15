@@ -811,6 +811,34 @@ var areaRiservataApp= new Vue ({
                 var response = JSON.parse(xhr.responseText);
                 self.modalDeleteTeacher.errorMessage=response;
             });
+        },
+
+        changeStateCourse : function (c) {
+            this.modalDeleteCourse.courseSelected=c;
+            this.modalDeleteCourse.warningMessage="Attenzione: la cancellazione del docente " +
+                "selezionato potrebbe comportare la cancellazione di prenotazioni effettuate. Vuoi Procedere?"
+            $('#deleteCourse').modal('show');
+
+        },
+        saveDeleteCourse : function () {
+            var self=this;
+            $.post(SERVERURL + 'deletecourse', {
+                courseToDelete: JSON.stringify(this.modalDeleteCourse.courseSelected)
+            }, function (data) {
+                console.log("Delete course -> " + JSON.stringify(data));
+                //se ko
+                if (!data.result) {
+                    self.modalDeleteCourse.errorMessage=data.errorOccurred;
+                } else {
+                    $('#deleteCourse').modal('hide');
+                    self.getCourses();
+                }
+            }).fail(function (xhr) {
+                console.log("Delete course error code " + xhr.status);
+                console.log("Delete course response text " + xhr.responseText);
+                var response = JSON.parse(xhr.responseText);
+                self.modalDeleteCourse.errorMessage=response;
+            });
         }
 
     }

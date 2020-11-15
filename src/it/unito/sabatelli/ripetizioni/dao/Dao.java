@@ -54,7 +54,7 @@ public class Dao {
           "FROM (USER JOIN LESSONS JOIN COURSE JOIN TEACHER JOIN SLOTHOURS JOIN DAY JOIN LESSON_STATE) " +
           "WHERE LESSONS.IDUSER=USER.IDUSER AND LESSONS.COURSECODE=COURSE.COURSECODE " +
           "AND LESSONS.BADGENUMBER=TEACHER.BADGENUMBER AND LESSONS.IDSLOT=SLOTHOURS.IDSLOT " +
-          "AND LESSONS.DAYCODE = day.daycode and lessons.statecode = lesson_state.code and USER.IDUSER = ?";
+          "AND LESSONS.DAYCODE = day.daycode and lessons.statecode = lesson_state.code and USER.IDUSER = ? ORDER BY LESSONS.DAYCODE AND LESSONS.IDSLOT";
 
   public static String QUERY_CHECKLESSON = "SELECT LESSONS.id, SLOTHOURS.idslot, " +
           "       SLOTHOURS.startslot, SLOTHOURS.endslot, DAY.daycode, DAY.dayname, " +

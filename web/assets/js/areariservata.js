@@ -815,7 +815,7 @@ var areaRiservataApp= new Vue ({
 
         changeStateCourse : function (c) {
             this.modalDeleteCourse.courseSelected=c;
-            this.modalDeleteCourse.warningMessage="Attenzione: la cancellazione del docente " +
+            this.modalDeleteCourse.warningMessage="Attenzione: la cancellazione del corso " +
                 "selezionato potrebbe comportare la cancellazione di prenotazioni effettuate. Vuoi Procedere?"
             $('#deleteCourse').modal('show');
 

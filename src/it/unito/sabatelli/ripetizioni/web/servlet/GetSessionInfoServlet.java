@@ -1,6 +1,8 @@
 package it.unito.sabatelli.ripetizioni.web.servlet;
 
 import com.google.gson.Gson;
+import it.unito.sabatelli.ripetizioni.model.GenericResponse;
+import it.unito.sabatelli.ripetizioni.model.SessionInfoResponse;
 import it.unito.sabatelli.ripetizioni.model.User;
 
 import javax.servlet.ServletException;
@@ -32,7 +34,11 @@ public class GetSessionInfoServlet extends HttpServlet {
     User connectedUser= (User) s.getAttribute("user");
     System.out.println("user logged "+connectedUser);
 
-    String json = gson.toJson(connectedUser);
+    SessionInfoResponse jsonResponse = new SessionInfoResponse();
+    jsonResponse.setUser(connectedUser);
+    jsonResponse.setSessionId(s.getId());
+
+    String json = gson.toJson(jsonResponse);
     response.getWriter().write(json);
     response.setStatus(HttpServletResponse.SC_OK);
 

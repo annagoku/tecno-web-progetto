@@ -45,6 +45,10 @@ public class NewReservationServlet extends HttpServlet {
 
       String userIdSelected = request.getParameter("userId");
 
+      String checkFirst = request.getParameter("checkFirst");
+
+
+
       if(userIdSelected != null && !user.getRole().equalsIgnoreCase("administrator")) {
         gr.setResult(false);
         gr.setErrorOccurred("Non si hanno i permessi per inserire una prenotazione");
@@ -59,6 +63,18 @@ public class NewReservationServlet extends HttpServlet {
       }
 
       Lesson l= dao.checkLesson(userIdSelected, itemSelected.getDay().getDaycode(), itemSelected.getSlot().getId());
+
+      if(checkFirst != null) {
+        if(l != null && l.getState().getCode() <=2) {
+          gr.setResult(false);
+          gr.setErrorOccurred("Esiste già una lezione "+l.getState().getName().toLowerCase());
+          String json = gson.toJson(gr);
+          response.getWriter().write(json);
+          response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
+          return;
+        }
+      }
+
 
       if (l!= null && l.getState().getCode()==2){
         gr.setResult(false);

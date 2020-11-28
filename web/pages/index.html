@@ -8,6 +8,10 @@
     
     <title>Ripetizioni</title>
 
+    <link rel="apple-touch-icon" sizes="180x180" href="./assets/ico/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./assets/ico/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./assets/ico/favicon-16x16.png">
+    <link rel="manifest" href="./assets/ico/site.webmanifest">
     
     <!-- Bootstrap core CSS -->
     <script src="./assets/dist/js/jquery-3.5.1.min.js"></script>
@@ -18,30 +22,13 @@
 
 <link href="./assets/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="./assets/dist/css/fontawesome/all.css">
-
-    <style>
-      .bd-placeholder-img {
-        font-size: 1.125rem;
-        text-anchor: middle;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-      }
-
-      @media (min-width: 768px) {
-        .bd-placeholder-img-lg {
-          font-size: 3.5rem;
-        }
-      }
-    </style>
     <!-- Custom styles for this template -->
     <link href="./assets/css/ripetizioni.css" rel="stylesheet">
   </head>
   <body>
-    
+    <div id="app">
       <nav id="navbar" class="navbar navbar-expand-md sticky-top py-1 site-header">
-        <a class="navbar-brand" href="#"><i class="fas fa-book-reader mx-2"></i> Ripetizioni</a>
+        <img src="./assets/img/android-chrome-192x192_inverted.png" style="zoom: 20%"> <a class="navbar-brand mx-2" href="#">Ripetizioni</a>
         <button class="navbar-toggler  navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
           <span><i class="fas fa-bars"></i></span>
         </button>
@@ -51,6 +38,18 @@
           
           <li class="nav-item mx-2"><a id="navlink-courses" class="nav-link " href="#courses">Corsi</a></li>
           <li class="nav-item mx-2"><a id="navlink-teachers" class="nav-link " href="#teachers">Insegnanti</a></li>
+
+          <li v-if="user" id="userlog" class="nav-item dropdown mx-2">
+            <a class="nav-link"  id="dropdownMenuUser" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#" ><i class="fas fa-user mx-2"></i>{{user.username}} ({{user.role}})</a>
+
+            <div class="dropdown-menu"  aria-labelledby="dropdownMenuUser">
+              <a  id="userhome" class="dropdown-item text-dark pointer" v-on:click.prevent="goToPrivateArea"><i class="fas fa-key mx-2"></i> Area Riservata</a>
+              <a  id="logout" class="dropdown-item text-dark pointer" v-on:click.prevent="logoutAction()"><i class="fas fa-power-off mx-2"></i> Logout</a>
+            </div>
+          </li>
+
+
+
         </ul>
       </div>
       </nav>
@@ -63,25 +62,25 @@
     <h1 class="display-4 font-weight-normal">Ripetizioni</h1>
     <h2 >Impara dai migliori</h2>
     <p class="lead font-weight-normal">Con i nostri insegnanti imparare non sarà più faticoso</p>
-    
+    <button class="btn btn-lg btn-primary-outline" v-on:click="showCatalog">Visualizza lezioni disponibili</button>
   </div>
   <div id="login" class="col-md-6 mx-auto slide-section">
-    <div  class="card">
+    <div v-if="!user" class="card">
       <form @submit="loginaction" class="form-signin">
         <div class="text-center mb-4">
           <h1 class="h3 mb-3 font-weight-normal">Accedi</h1>
         </div>
       
         <div class="form-label-group">
-          <input v-model="user" type="text" id="inputUser" class="form-control" placeholder="Username" required autofocus>
+          <input v-model="login.username" type="text" id="inputUser" class="form-control" placeholder="Username" required autofocus>
           <label for="inputUser">User</label>
         </div>
       
         <div class="form-label-group">
-          <input v-model="psw" type="password" id="inputPassword" class="form-control" placeholder="Password" required>
+          <input v-model="login.password" type="password" id="inputPassword" class="form-control" placeholder="Password" required>
           <label for="inputPassword">Password</label>
         </div>
-        <div class="form-label-group" ><small class="text-danger"> {{info == null ? '&nbsp;' : info.errorOccurred}}</small></div>
+        <div class="form-label-group" ><small class="text-danger"> {{login.info == null ? '&nbsp;' : login.info.errorOccurred}}</small></div>
         
         <button class="btn btn-lg btn-primary btn-block" type="submit">Login</button>
 
@@ -136,7 +135,49 @@
 
 </div>
 
-    <!-- Footer area pubblica  -->
+
+      <!-- Modal visualizza catalogo prenotazioni  -->
+      <div class="modal" id="modalCatalog" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg  modal-dialog-scrollable" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Catalogo lezioni disponibili</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body text-center">
+              <h5 class="text-danger" v-if="modalCatalog.errorMessage">{{modalCatalog.errorMessage}}</h5>
+              <table v-if="modalCatalog.catalog" class="table table-sm ">
+                <thead>
+                <tr>
+                  <th scope="col">Ora</th>
+                  <th scope="col">Giorno</th>
+                  <th scope="col">Materia</th>
+                  <th scope="col">Insegnante</th>
+                </tr>
+                </thead>
+                <tbody class="tbody-fixed">
+                <tr v-for="item in modalCatalog.catalog">
+                  <td>{{item.slot.startHour}} - {{item.slot.endHour}}</td>
+                  <td>{{item.day.dayname}}</td>
+                  <td>{{item.course.name}}</td>
+                  <td>{{item.teacher.name}} {{item.teacher.surname}}</td>
+                </tr>
+
+                </tbody>
+              </table>
+
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Footer area pubblica  -->
 <footer class="container-fluid py-5 footer w-100">
   <div class="row">
     <div class="col text-center">
@@ -148,45 +189,9 @@
     </div>
       </div>
 </footer>
+    </div>
       <script type="text/javascript" src="./assets/js/ripetizioni.js" defer></script>
 <script type="text/javascript" defer>
-
-$(document).ready(function(){
-  var scroll_start = 0;
-  var startchange = $('#start-change');
-  var offset = startchange.offset();
-  var teachers = $('#teachers');
-  var offsetT = teachers.offset();
-
-  $(window).resize(function(){
-    startchange = $('#start-change');
-    offset = startchange.offset();
-    teachers = $('#teachers');
-    offsetT = teachers.offset();
-  });
-
-  $(window).scroll(function(){
-  	scroll_start = $(document).scrollTop();
-    if(scroll_start > offset.top-130 && scroll_start < offsetT.top-50) {
-      $("#navbar").addClass("navbar-opaque");
-      $("#navlink-home").removeClass("active");
-      $("#navlink-teachers").removeClass("active");
-      $("#navlink-courses").addClass("active");
-      
-	  }
-    else if(scroll_start >= offsetT.top-50) {
-      $("#navlink-home").removeClass("active");
-      $("#navlink-teachers").addClass("active");
-      $("#navlink-courses").removeClass("active");
-	  }
-	  else{
-      $("#navbar").removeClass("navbar-opaque");  
-      $("#navlink-home").addClass("active");
-      $("#navlink-teachers").removeClass("active");
-      $("#navlink-courses").removeClass("active");	
-	  }
-  })
-})
 
 </script>
   </body>

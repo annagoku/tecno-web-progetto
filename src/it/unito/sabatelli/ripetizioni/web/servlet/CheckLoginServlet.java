@@ -35,7 +35,7 @@ public class CheckLoginServlet extends HttpServlet {
       Dao dao = (Dao) request.getServletContext().getAttribute(Dao.DAONAME);
 
       request.getSession().removeAttribute("user");
-
+      genericResponseJson.setSessionId(request.getSession().getId());
       boolean found = false;
       String username=request.getParameter("user");
       String password=request.getParameter("psw");

@@ -5,13 +5,10 @@ import it.unito.sabatelli.ripetizioni.dao.Dao;
 import it.unito.sabatelli.ripetizioni.model.Course;
 import it.unito.sabatelli.ripetizioni.model.GenericResponse;
 import it.unito.sabatelli.ripetizioni.model.User;
-import org.apache.catalina.valves.rewrite.InternalRewriteMap;
 
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.net.http.HttpResponse;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 import javax.servlet.http.*;
@@ -33,6 +30,8 @@ public class GetCoursesServlet extends HttpServlet {
     response.setContentType("application/json");
     Gson gson = new Gson();
     GenericResponse gr= new GenericResponse();
+    HttpSession s = request.getSession();
+    gr.setSessionId(s.getId());
 
     try {
       String filter=request.getParameter("filter");
@@ -82,15 +81,26 @@ public class GetCoursesServlet extends HttpServlet {
     }
   }
 
+  /**
+   * NUOVO CORSO
+   *
+   * @param request
+   * @param response
+   * @throws javax.servlet.ServletException
+   * @throws IOException
+   */
   private void processRequestPost(HttpServletRequest request, HttpServletResponse response) throws javax.servlet.ServletException, IOException{
     response.setContentType("application/json");
     Gson gson = new Gson();
     GenericResponse gresp= new GenericResponse();
-    String regex = "^[a-zA-Z0-9]+$";
-    Pattern pattern = Pattern.compile(regex);
+    String regexCode = "^[A-Z0-9]{3}$";
+    Pattern patternCode = Pattern.compile(regexCode);
+    String regexName = "^[A-Z].*$";
+    Pattern patternName = Pattern.compile(regexName);
+    HttpSession s = request.getSession();
+    gresp.setSessionId(s.getId());
 
     try {
-      HttpSession s = request.getSession();
       User user = (User) s.getAttribute("user");
 
       if ( user== null || !user.getRole().equalsIgnoreCase("administrator")) {
@@ -109,9 +119,9 @@ public class GetCoursesServlet extends HttpServlet {
 
         Dao dao = (Dao) request.getServletContext().getAttribute(Dao.DAONAME);
 
-        if(code==null || name==null || !pattern.matcher(code).matches() || !pattern.matcher(name).matches() ) {
+        if(code==null || name==null || !patternCode.matcher(code).matches() || !patternName.matcher(name).matches() ) {
           gresp.setResult(false);
-          gresp.setErrorOccurred("Compilare tutti i cambi obbligatori. Sono ammessi solo caratteri alfanumerici");
+          gresp.setErrorOccurred("Compilare tutti i cambi obbligatori. Sono ammessi solo caratteri alfanumerici. Il nome della materia deve iniziare con una lettera maiuscola");
           response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
           response.getWriter().write(gson.toJson(gresp));
           return;

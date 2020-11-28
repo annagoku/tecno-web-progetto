@@ -54,7 +54,7 @@ public class Dao {
           "FROM (USER JOIN LESSONS JOIN COURSE JOIN TEACHER JOIN SLOTHOURS JOIN DAY JOIN LESSON_STATE) " +
           "WHERE LESSONS.IDUSER=USER.IDUSER AND LESSONS.COURSECODE=COURSE.COURSECODE " +
           "AND LESSONS.BADGENUMBER=TEACHER.BADGENUMBER AND LESSONS.IDSLOT=SLOTHOURS.IDSLOT " +
-          "AND LESSONS.DAYCODE = day.daycode and lessons.statecode = lesson_state.code and USER.IDUSER = ? ORDER BY LESSONS.DAYCODE AND LESSONS.IDSLOT";
+          "AND LESSONS.DAYCODE = day.daycode and lessons.statecode = lesson_state.code and USER.IDUSER = ? ORDER BY LESSONS.DAYCODE, LESSONS.IDSLOT";
 
   public static String QUERY_CHECKLESSON = "SELECT LESSONS.id, SLOTHOURS.idslot, " +
           "       SLOTHOURS.startslot, SLOTHOURS.endslot, DAY.daycode, DAY.dayname, " +
@@ -152,14 +152,18 @@ public class Dao {
       }
       Statement st = conn1.createStatement();
       if (!isAdmin) {
+        System.out.println("getCourseDB -> non admin");
         ResultSet rs = st.executeQuery(QUERY_COURSE_INDEX);
         while (rs.next()) {
           Course c = new Course(rs.getString("coursecode"), rs.getString("coursename"), rs.getString("icon"));
+          c.bindState(1);
+
           out.add(c);
         }
         rs.close();
       }
       else if(isAdmin){
+        System.out.println("getCourseDB -> admin");
         ResultSet rs = st.executeQuery(QUERY_COURSE_ADMIN);
         while (rs.next()) {
           Course c = new Course(rs.getString("coursecode"), rs.getString("coursename"), rs.getString("icon"));

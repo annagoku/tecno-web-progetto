@@ -5,10 +5,17 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @WebServlet(name = "Controller", urlPatterns = {"","/public/*", "/private/*"})
 public class ControllerServlet extends HttpServlet {
+
+  static final String REGEX = "(.*);([A-Za-z0-9]+)";
+  static final Pattern PATTERN = Pattern.compile(REGEX);
+
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     process(req, resp);
@@ -24,6 +31,16 @@ public class ControllerServlet extends HttpServlet {
     String method = request.getMethod();
     String path = getPath(request);
     System.out.println("Controller "+method+" "+path);
+
+    HttpSession session = request.getSession();
+    String sessionId = session.getId();
+    String clientSessionId = request.getHeader("JSESSIONID");
+    System.out.println("Controller clientSessionID -> "+clientSessionId);
+    if(clientSessionId != null && !clientSessionId.equalsIgnoreCase(sessionId)) {
+      System.out.println("INVALIDO LA SESSIONE");
+      session.invalidate();
+      getServletContext().getRequestDispatcher("/pages/invalid.html").forward(request, response);
+    }
 
     //Home
     if("/".equals(path)){

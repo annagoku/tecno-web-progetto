@@ -8,6 +8,10 @@
 
   <title>Ripetizioni</title>
 
+  <link rel="apple-touch-icon" sizes="180x180" href="../assets/ico/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/ico/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../assets/ico/favicon-16x16.png">
+  <link rel="manifest" href="../assets/ico/site.webmanifest">
 
   <!-- Bootstrap core CSS -->
   <script src="../assets/dist/js/jquery-3.5.1.min.js"></script>
@@ -18,23 +22,6 @@
 
   <link href="../assets/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="../assets/dist/css/fontawesome/all.css">
-
-  <style>
-    .bd-placeholder-img {
-      font-size: 1.125rem;
-      text-anchor: middle;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-    }
-
-    @media (min-width: 768px) {
-      .bd-placeholder-img-lg {
-        font-size: 3.5rem;
-      }
-    }
-  </style>
   <!-- Custom styles for this template -->
   <link href="../assets/css/ripetizioni.css" rel="stylesheet">
 </head>
@@ -42,7 +29,9 @@
 <div id="app">
 
   <nav id="navbar" style="z-index:1002" class="navbar navbar-expand-md sticky-top py-1 site-header navbar-opaque">
-    <a class="navbar-brand" href="#"><i class="fas fa-book-reader mx-2"></i> Ripetizioni</a>
+    <img src="../assets/img/android-chrome-192x192_inverted.png" style="zoom: 20%"> <a class="navbar-brand mx-2"  @click="goToHome" href="#">Ripetizioni</a>
+
+
 
     <ul  class="navbar-nav ml-auto mx-2">
       <li v-if="user" id="userlog" class="nav-item dropdown mx-2">

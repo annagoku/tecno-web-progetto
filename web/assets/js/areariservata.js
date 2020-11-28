@@ -2,11 +2,16 @@
 var SERVERURL = window.location.href;
 var HOMEURL = SERVERURL.substr(0, SERVERURL.indexOf("private"));
 
+var REGEXP_COURSE_CODE = new RegExp("^[A-Z0-9]{3}$");
+var REGEXP_COURSE_NAME = new RegExp("^[A-Z].*$");
+
+
 window.userSession = null;
 
 var areaRiservataApp= new Vue ({
     el:"#app",
     data: {
+        sessionId: null,
         user: null,
         days: [
             'Lunedì',
@@ -127,7 +132,15 @@ var areaRiservataApp= new Vue ({
             var self = this;
             $.get(SERVERURL + 'userlog', function (data) {
                 //se ok
-                self.user = data;
+                self.user = data.user;
+                self.sessionId = data.sessionId;
+
+                $.ajaxSetup({
+                    headers:{
+                        'JSESSIONID': data.sessionId
+                    }
+                });
+
                 if (self.user == null) {
                     window.location = HOMEURL;
                     return;
@@ -136,7 +149,7 @@ var areaRiservataApp= new Vue ({
                     self.getLessons();
                 }
                 else{
-                    self.getCourses();
+                    self.getCourses(null, false);
                 }
                 console.log("GetSessionInfo -> " + JSON.stringify(data));
             }).fail(function () {
@@ -309,7 +322,14 @@ var areaRiservataApp= new Vue ({
             this.modalNewReservation.reservationSelected = catalogItem;
 
         },
-
+        encodeURL: function (url) {
+            if(this.sessionId != null) {
+                return url+";"+this.sessionId;
+            }
+            else {
+                return url;
+            }
+        },
 //controlla e gestisce eventuali sovrapposizioni tra nuova prenotazione selezionata e prenotazioni esistenti
         checkFeasibilityNewReservation : function(){
             $('#modalNew').modal('hide');
@@ -362,7 +382,7 @@ var areaRiservataApp= new Vue ({
             switch (tab) {
                 case 'courses':
                     this.tabActive="courses";
-                    this.getCourses(null);
+                    this.getCourses(null, false);
                     break;
                 case 'teachers':
                     this.tabActive="teachers";
@@ -419,7 +439,7 @@ var areaRiservataApp= new Vue ({
                     self.showAlert(data.errorMessage);
                 } else {
                     $('#modalNew').modal('hide');
-                    self.getLessonsAdmin();
+                    self.getLessonAdmin();
                 }
             }).fail(function (xhr) {
                 console.log("Save new lesson error code " + xhr.status);
@@ -429,7 +449,9 @@ var areaRiservataApp= new Vue ({
 
             });
         },
-
+        goToHome: function () {
+            document.location.href = HOMEURL;
+        },
 //Logout utente e ritorno alla home
         logoutAction: function () {
             var self = this;
@@ -447,11 +469,11 @@ var areaRiservataApp= new Vue ({
         },
 
         //AREA RISERVATA ADMINISTRATOR
-        getCourses: function (callback) {
-
+        getCourses: function (callback, onlyactive) {
+            var path = HOMEURL + 'public/courses?' + (onlyactive ? 'filter=home' : 'filter=admin');
             var self = this;
 
-            $.get(HOMEURL + 'public/courses?filter=admin', function (data) {
+            $.get(path, function (data) {
                 //se ok
                 self.courseAdmin=data;
                 console.log("courseadmin -> " + JSON.stringify(data));
@@ -522,7 +544,7 @@ var areaRiservataApp= new Vue ({
         refresh: function(p){
             switch (p) {
                 case 1:
-                    this.getCourses(null);
+                    this.getCourses(null, false);
                     break;
                 case 2:
                     this.getTeachersAdmin(null);
@@ -566,6 +588,7 @@ var areaRiservataApp= new Vue ({
                     var self=this;
                     this.modalNewReservation.courseSelected = '-';
                     this.modalNewReservation.userSelected = '-';
+                    this.modalNewReservation.matrix = null;
                     this.getUserAdmin(
                         function () {
                             self.modalNewReservation.users = self.userAdmin;
@@ -577,7 +600,7 @@ var areaRiservataApp= new Vue ({
                         function () {
                             self.modalNewReservation.courses=self.courseAdmin;
                             $('#modalNew').modal('show');
-                        }
+                        }, true
                     );
 
                     break;
@@ -597,18 +620,16 @@ var areaRiservataApp= new Vue ({
         },
 
         checkInputNewCourse: function(e){
-
-            var espression = new RegExp('^[a-z]+$','i');
             e.preventDefault();
 
             this.modalInsertCourse.errorMessageCode=null;
             this.modalInsertCourse.errorMessageName=null;
-            if(this.modalInsertCourse.code==null || this.modalInsertCourse.code.length!=3 || !espression.test(this.modalInsertCourse.code)){
+            if(this.modalInsertCourse.code==null ||  !REGEXP_COURSE_CODE.test(this.modalInsertCourse.code)){
                 this.modalInsertCourse.errorMessageCode="Campo obbligatorio di 3 caratteri solo alfanumerici";
                 return;
             }
 
-            if(this.modalInsertCourse.name==null|| !espression.test(this.modalInsertCourse.name)){
+            if(this.modalInsertCourse.name==null|| !REGEXP_COURSE_NAME.test(this.modalInsertCourse.name)){
                 this.modalInsertCourse.errorMessageName="Campo obbligatorio. Inserire solo caratteri alfanumerici";
                 return;
             }
@@ -632,7 +653,7 @@ var areaRiservataApp= new Vue ({
                 } else {
                     $('#insertCourse').modal('hide');
 
-                    self.getCourses();
+                    self.getCourses(null, false);
                 }
             }).fail(function (xhr) {
                 console.log("Save new course error code " + xhr.status);
@@ -831,7 +852,7 @@ var areaRiservataApp= new Vue ({
                     self.modalDeleteCourse.errorMessage=data.errorOccurred;
                 } else {
                     $('#deleteCourse').modal('hide');
-                    self.getCourses();
+                    self.getCourses(null, false);
                 }
             }).fail(function (xhr) {
                 console.log("Delete course error code " + xhr.status);

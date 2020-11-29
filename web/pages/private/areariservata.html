@@ -89,6 +89,34 @@
       </div>
     </div>
   </template>
+  <!-- Modale cambio stato prenotazioni sudenti -->
+
+  <div data-keyboard="false" data-backdrop="static" class="modal" id="modalState" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Selezionare una tra le seguenti azioni:</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body text-center">
+          <button type="button" class="btn btn-outline-success" v-bind:class="{active : modalLesson.wantConfirm}" v-on:click="setModalLessonState(1)">Segna come effettuata</button>
+          <button type="button" class="btn btn-outline-danger" v-bind:class="{active : modalLesson.wantCancel}" v-on:click="setModalLessonState(2)">Annulla prenotazione</button>
+          <p v-if="modalLesson.errorMessage" class="text-danger">{{modalLesson.errorMessage}}</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" v-on:click="saveLessonState()">Salva</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+
+
   <!-- Area riservata amministratore  -->
   <template v-if="(user && user.role == 'administrator')">
     <nav style="z-index:1001; padding-top: 3.5rem!important" class="sticky-top  bg-white">
@@ -312,7 +340,7 @@
                     <td class="align-middle">{{l.teacher.name}}</td>
                     <td class="align-middle">{{l.teacher.surname}}</td>
                     <td class="align-middle">{{l.state.name}}</td>
-                    <td class="align-middle"><button v-if="(l.state.code == 1)" type="button" class="btn btn-danger btn-sm" v-on:click="showModalLesson(l)"><i class="fas fa-times-circle"></i></button></td>
+                    <td class="align-middle"><button v-if="(l.state.code == 1)" type="button" class="btn btn-danger btn-sm" v-on:click="changeStateReservation(l)"><i class="fas fa-times-circle"></i></button></td>
                   </tr>
                   <tr v-if="(lessonsAdmin.length == 0)">
                     <td colspan="10" class="text-center">Nessuna prenotazione presente</td>
@@ -333,24 +361,23 @@
       </div></div></template>
 
 
-  <!-- Modal cambio stato prenotazioni  -->
+  <!-- Modal cambio stato prenotazioni amministratore  -->
 
-  <div data-keyboard="false" data-backdrop="static" class="modal" id="modalState" tabindex="-1" role="dialog">
+  <div data-keyboard="false" data-backdrop="static" class="modal" id="modalDeleteReservationAdmin" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Selezionare una tra le seguenti azioni:</h5>
+          <h5 class="modal-title">Cancellazione prenotazine</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body text-center">
-          <button type="button" v-if="(user && user.role=='student')" class="btn btn-outline-success" v-bind:class="{active : modalLesson.wantConfirm}" v-on:click="setModalLessonState(1)">Segna come effettuata</button>
-          <button type="button" class="btn btn-outline-danger" v-bind:class="{active : modalLesson.wantCancel}" v-on:click="setModalLessonState(2)">Annulla prenotazione</button>
-          <p v-if="modalLesson.errorMessage" class="text-danger">{{modalLesson.errorMessage}}</p>
+          <p> {{modalDeleteReservation.warningMessage}}</p>
+          <small v-if="modalDeleteReservation.errorMessage" class="text-danger">{{modalDeleteReservation.errorMessage}}</small>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary" v-on:click="saveLessonState()">Salva</button>
+          <button type="button" class="btn btn-primary" v-on:click="saveDeleteReservation()">Salva</button>
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
         </div>
       </div>

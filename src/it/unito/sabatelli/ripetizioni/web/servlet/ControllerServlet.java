@@ -110,6 +110,10 @@ public class ControllerServlet extends HttpServlet {
           request.getServletContext().getNamedDispatcher("DeleteCourseAdmin").forward(request, response);
           return;
 
+        case "/private/deletereservation":
+          request.getServletContext().getNamedDispatcher("DeleteReservationAdmin").forward(request, response);
+          return;
+
       }
     }
     else {

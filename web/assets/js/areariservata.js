@@ -99,9 +99,12 @@ var areaRiservataApp= new Vue ({
             courseSelected: null,
             warningMessage: null,
             errorMessage: null
+        },
+        modalDeleteReservation: {
+            reservationSelected: null,
+            warningMessage: null,
+            errorMessage: null
         }
-
-
     },
     mounted: function () {
         this.getSessionInfo();
@@ -859,6 +862,32 @@ var areaRiservataApp= new Vue ({
                 console.log("Delete course response text " + xhr.responseText);
                 var response = JSON.parse(xhr.responseText);
                 self.modalDeleteCourse.errorMessage=response;
+            });
+        },
+        changeStateReservation : function (r) {
+            this.modalDeleteReservation.reservationSelected=r;
+            this.modalDeleteReservation.warningMessage="Attenzione: Confermi la cancellazione della prenotazione selezionata? Vuoi Procedere?"
+            $('#modalDeleteReservationAdmin').modal('show');
+
+        },
+        saveDeleteReservation : function () {
+            var self=this;
+            $.post(SERVERURL + 'deletereservation', {
+                reservationToDelete: JSON.stringify(this.modalDeleteReservation.reservationSelected)
+            }, function (data) {
+                console.log("Delete reservation -> " + JSON.stringify(data));
+                //se ko
+                if (!data.result) {
+                    self.modalDeleteReservation.errorMessage=data.errorOccurred;
+                } else {
+                    $('#modalDeleteReservationAdmin').modal('hide');
+                    self.getLessonAdmin();
+                }
+            }).fail(function (xhr) {
+                console.log("Delete teacher error code " + xhr.status);
+                console.log("Delete teacher response text " + xhr.responseText);
+                var response = JSON.parse(xhr.responseText);
+                self.modalDeleteReservation.errorMessage=response.errorOccurred;
             });
         }
 

@@ -101,7 +101,7 @@ public class Dao {
   public static String DELETE_LESSON3_ADMIN="UPDATE LESSONS l SET l.STATECODE=3 WHERE l.STATECODE=1 AND l.COURSECODE=?";
   public static String DELETE_TEACHER_ADMIN="UPDATE TEACHER t SET t.ACTIVE=0 WHERE t.BADGENUMBER=?";
   public static String DELETE_LESSON2_ADMIN="UPDATE LESSONS l SET l.STATECODE=3 WHERE l.STATECODE=1 AND l.BADGENUMBER=?";
-
+  public static String DELETE_LESSON_ADMIN_DIRECT="UPDATE LESSONS l SET l.STATECODE=3 WHERE l.ID=?";
   boolean initialized = false;
   String url;
   String user;
@@ -793,7 +793,7 @@ public int saveNewTeacher(String badge, String name, String surname, String avat
         System.out.println("deleteAssociation--> " + c.getCode()+ "row updated "+r);
       }
 
-      PreparedStatement ps = conn.prepareStatement(DELETE_LESSON3_ADMIN);
+      PreparedStatement ps = conn.prepareStatement(DELETE_LESSON_ADMIN_DIRECT);
       ps.setString(1, c.getCode());
 
 
@@ -812,6 +812,35 @@ public int saveNewTeacher(String badge, String name, String surname, String avat
       safeCloseConnection(conn);
     }
   }
+
+  //Cancellazione Prenotazione Admin
+
+  public int deleteReservationAdmin (Lesson l) throws  SQLException {
+    checkInit();
+    Connection conn = null;
+    int row=0;
+    try {
+      conn = getConnection();
+
+      if(l!= null) {
+        PreparedStatement ps = conn.prepareStatement(DELETE_LESSON_ADMIN_DIRECT);
+        ps.setInt(1, l.getId());
+
+        row = ps.executeUpdate();
+        System.out.println("deleteLesson--> " + l.getId()+ "row updated "+row);
+      }
+      return row;
+
+    }catch (SQLException e) {
+      System.out.println("Error "+e.getMessage()+" rolling back");
+      throw  e;
+    }
+    finally {
+      safeCloseConnection(conn);
+    }
+  }
+
+
 
 
 }

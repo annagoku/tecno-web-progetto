@@ -144,6 +144,9 @@
 
 #citazione{
   font-style: italic;
+  font-family: "Source Sans Pro";
+  font-weight: 300;
+  font-size: 18pt;
   color:white;
 }
 

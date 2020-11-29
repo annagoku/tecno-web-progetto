@@ -156,7 +156,7 @@
                     <td class="align-middle"><button v-if="(c.statecode == 1)" type="button" class="btn btn-warning btn-sm" v-on:click="changeStateCourse(c)"><i class="fas fa-trash-alt"></i></button></td>
                   </tr>
                   <tr v-if="(courseAdmin.length == 0)">
-                    <td colspan="5" class="text-center">Nessun insegnante presente</td>
+                    <td colspan="5" class="text-center">Nessun corso presente</td>
                   </tr>
 
                   </tbody>
@@ -646,7 +646,7 @@
             <p >{{alert.message}}</p>
           </div>
           <div class="modal-footer">
-            <button type="submit" class="btn btn-primary" data-dismiss="modal">OK</button>
+            <button type="submit" class="btn btn-primary" data-dismiss="modal" @click.stop.prevent="closeAlert">OK</button>
           </div>
 
       </div>

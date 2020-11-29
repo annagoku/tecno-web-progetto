@@ -9,6 +9,19 @@ public class Lesson {
   private Teacher teacher;
   private LessonState state;
 
+  @Override
+  public String toString() {
+    return "Lesson{" +
+            "id=" + id +
+            ", slot=" + slot +
+            ", day=" + day +
+            ", user=" + user +
+            ", course=" + course +
+            ", teacher=" + teacher +
+            ", state=" + state +
+            '}';
+  }
+
   public Lesson(){
 
   }

@@ -1,5 +1,8 @@
 package it.unito.sabatelli.ripetizioni.web.servlet;
 
+import com.google.gson.Gson;
+import it.unito.sabatelli.ripetizioni.model.GenericResponse;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -13,7 +16,7 @@ import java.util.regex.Pattern;
 @WebServlet(name = "Controller", urlPatterns = {"","/public/*", "/private/*"})
 public class ControllerServlet extends HttpServlet {
 
-  static final String REGEX = "(.*);([A-Za-z0-9]+)";
+  static final String REGEX = "(.*);jsessionid=([A-Za-z0-9]+)";
   static final Pattern PATTERN = Pattern.compile(REGEX);
 
   @Override
@@ -29,17 +32,37 @@ public class ControllerServlet extends HttpServlet {
 
   private void process(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     String method = request.getMethod();
-    String path = getPath(request);
-    System.out.println("Controller "+method+" "+path);
-
+    String fullpath = getPath(request);
+    System.out.println("Controller "+method+" "+fullpath);
+    Matcher m = PATTERN.matcher(fullpath);
     HttpSession session = request.getSession();
     String sessionId = session.getId();
-    String clientSessionId = request.getHeader("JSESSIONID");
+    String clientSessionId = null;
+    String path = fullpath;
+
+    String acceptedContentTypes = request.getHeader("Accept");
+    boolean jsonContentType = "application/json".equalsIgnoreCase(acceptedContentTypes);
+
+    if(m.matches()) {
+      clientSessionId = m.group(2);
+      path = m.group(1);
+    }
+
     System.out.println("Controller clientSessionID -> "+clientSessionId);
     if(clientSessionId != null && !clientSessionId.equalsIgnoreCase(sessionId)) {
       System.out.println("INVALIDO LA SESSIONE");
       session.invalidate();
-      getServletContext().getRequestDispatcher("/pages/invalid.html").forward(request, response);
+      if(jsonContentType) {
+        GenericResponse gr = new GenericResponse();
+        gr.setResult(false);
+        gr.setErrorOccurred("Sessione non valida");
+        response.setStatus(440);
+        response.getWriter().write(new Gson().toJson(gr));
+        return;
+      }
+      else {
+        getServletContext().getRequestDispatcher("/pages/invalid.html").forward(request, response);
+      }
     }
 
     //Home

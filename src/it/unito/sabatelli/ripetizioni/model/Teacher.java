@@ -15,7 +15,19 @@ public class Teacher {
 
   }
 
-  public Teacher (String badge, String name, String surname,String avatar){
+  @Override
+  public String toString() {
+    return "Teacher{" +
+            "badge='" + badge + '\'' +
+            ", name='" + name + '\'' +
+            ", surname='" + surname + '\'' +
+            ", state='" + state + '\'' +
+            ", statecode=" + statecode +
+            ", avatar='" + avatar + '\'' +
+            '}';
+  }
+
+  public Teacher (String badge, String name, String surname, String avatar){
     this.badge=badge;
     this.name=name;
     this.surname=surname;

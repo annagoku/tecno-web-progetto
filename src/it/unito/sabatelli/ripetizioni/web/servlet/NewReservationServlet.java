@@ -63,7 +63,7 @@ public class NewReservationServlet extends HttpServlet {
       }
 
       Lesson l= dao.checkLesson(userIdSelected, itemSelected.getDay().getDaycode(), itemSelected.getSlot().getId());
-
+      System.out.println("checkLesson -> "+l);
       if(checkFirst != null) {
         if(l != null && l.getState().getCode() <=2) {
           gr.setResult(false);

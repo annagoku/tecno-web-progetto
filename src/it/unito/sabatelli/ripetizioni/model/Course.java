@@ -11,6 +11,17 @@ public class Course {
 
   }
 
+  @Override
+  public String  toString() {
+    return "Course{" +
+            "code='" + code + '\'' +
+            ", name='" + name + '\'' +
+            ", icon='" + icon + '\'' +
+            ", state='" + state + '\'' +
+            ", statecode=" + statecode +
+            '}';
+  }
+
   public Course(String code, String name, String icon) {
     this.code = code;
     this.name = name;

@@ -142,6 +142,10 @@
   color: #5476bf;
 }
 
+#citazione{
+  font-style: italic;
+  color:white;
+}
 
   .form-signin {
     color: #5476bf;

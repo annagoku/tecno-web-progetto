@@ -118,7 +118,6 @@ var areaRiservataApp= new Vue ({
     },
     mounted: function () {
         this.sessionId = this.getSessionId();
-
         this.getSessionInfo();
     },
     methods: {
@@ -136,6 +135,12 @@ var areaRiservataApp= new Vue ({
                 self.lessonsMatrix = data;
 
                 console.log("Lessons Matrix -> " + JSON.stringify(data));
+                // nextTick serve per eseguire una funzione solo dopo che il DOM è aggiornato
+                // in questo modo posso chiamare la funzione per inizializzare i tooltip
+                // sulle card disegnate delle lezioni
+                Vue.nextTick(function () {
+                    $('[data-toggle="tooltip"]').tooltip()
+                });
             }).fail(function (xhr) {
                 //se errore
                 self.checkServerError(xhr, true);

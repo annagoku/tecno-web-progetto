@@ -337,3 +337,8 @@
     font-size: 3.5rem;
   }
 }
+
+#navAdmin{
+  z-index:1001;
+  padding-top: 3.5rem!important;
+}

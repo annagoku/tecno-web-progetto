@@ -14,11 +14,14 @@ public class ApplicationContextListener implements ServletContextListener {
 
   @Override
   public void contextInitialized(ServletContextEvent sce) {
-    System.out.println("Ripetizioni - START");
+    System.out.println("------------------- Ripetizioni - START -------------------");
 
     String url = sce.getServletContext().getInitParameter("DB_URL");
     String user = sce.getServletContext().getInitParameter("DB_USER");
     String pwd = sce.getServletContext().getInitParameter("DB_PWD");
+
+    System.out.println("DB URL  -> "+url);
+    System.out.println("DB USER -> "+user);
 
     Dao dao = new Dao();
     try {
@@ -32,6 +35,6 @@ public class ApplicationContextListener implements ServletContextListener {
 
   @Override
   public void contextDestroyed(ServletContextEvent sce) {
-    System.out.println("Ripetizioni - END");
+    System.out.println("------------------- Ripetizioni - END -------------------");
   }
 }

@@ -16,7 +16,7 @@ import java.sql.SQLException;
 
 @WebServlet (name="CheckLogin",  urlPatterns = "/servlets/CheckLogin")
 
-public class CheckLoginServlet extends HttpServlet {
+public class LoginServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     resp.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);

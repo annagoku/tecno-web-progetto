@@ -5,10 +5,7 @@ import it.unito.sabatelli.ripetizioni.model.GenericResponse;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.*;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,34 +37,30 @@ public class ControllerServlet extends HttpServlet {
     String clientSessionId = null;
     String path = fullpath;
 
-    String acceptedContentTypes = request.getHeader("Accept");
-    boolean jsonContentType = "application/json".equalsIgnoreCase(acceptedContentTypes);
-
+    // controlla che il path contenga il sessionID
     if(m.matches()) {
       clientSessionId = m.group(2);
       path = m.group(1);
     }
 
     System.out.println("Controller clientSessionID -> "+clientSessionId);
+    //Se gli id non coincidono la sessione è invalidata
     if(clientSessionId != null && !clientSessionId.equalsIgnoreCase(sessionId)) {
-      System.out.println("INVALIDO LA SESSIONE");
-      session.invalidate();
-      if(jsonContentType) {
-        GenericResponse gr = new GenericResponse();
-        gr.setResult(false);
-        gr.setErrorOccurred("Sessione non valida");
-        response.setStatus(440);
-        response.getWriter().write(new Gson().toJson(gr));
-        return;
-      }
-      else {
-        getServletContext().getRequestDispatcher("/pages/invalid.html").forward(request, response);
-      }
+      invalidate(request, response);
+      return;
     }
 
     //Home
     if("/".equals(path)){
+
+      if(clientSessionId == null && session.isNew()) {
+        String encodedURL = getServletContext().getContextPath()+path+";jsessionid="+sessionId;
+        System.out.println("encodedUrl "+encodedURL);
+        response.sendRedirect(encodedURL);
+      }
+      else {
         getServletContext().getRequestDispatcher("/pages/index.html").forward(request, response);
+      }
 
     }
     else if(path.startsWith("/public")) {
@@ -78,15 +71,22 @@ public class ControllerServlet extends HttpServlet {
         case "/public/teachers":
           request.getServletContext().getNamedDispatcher("GetTeachers").forward(request, response);
           return;
+        case "/public/catalog":
+          request.getServletContext().getNamedDispatcher("GetCatalog").forward(request, response);
+          return;
         case "/public/login":
           request.getServletContext().getNamedDispatcher("CheckLogin").forward(request, response);
           return;
       }
     }
     else if(path.startsWith("/private")) {
+      if(clientSessionId == null) {
+        invalidate(request, response);
+        return;
+      }
       switch (path){
         case "/private/":
-          request.getServletContext().getRequestDispatcher("/pages/private/areariservata.html").forward(request, response);
+          getServletContext().getRequestDispatcher("/pages/private/areariservata.html").forward(request, response);
           return;
         case "/private/userlog":
           System.out.println("verso session INFO");
@@ -152,6 +152,38 @@ public class ControllerServlet extends HttpServlet {
   }
 
 
+  private void invalidate(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+    String acceptedContentTypes = request.getHeader("Accept");
+    boolean jsonContentType = "application/json".equalsIgnoreCase(acceptedContentTypes);
+    System.out.println("jsonContentType -> "+jsonContentType);
+    System.out.println("INVALIDO LA SESSIONE -> "+request.getSession().getId());
+    request.getSession().invalidate();
+    handleLogOutResponseCookie(request, response);
+    if(jsonContentType) {
+      GenericResponse gr = new GenericResponse();
+      gr.setResult(false);
+      gr.setErrorOccurred("Sessione non valida");
+      response.setStatus(440);
+      response.getWriter().write(new Gson().toJson(gr));
+      return;
+    }
+    else {
+      response.sendRedirect(request.getContextPath()+"/pages/invalid.html");
+    }
+  }
+
+  private void handleLogOutResponseCookie(HttpServletRequest request, HttpServletResponse response) {
+    Cookie[] cookies = request.getCookies();
+    if(cookies != null) {
+      for (Cookie cookie : cookies) {
+        cookie.setMaxAge(0);
+        cookie.setValue(null);
+        cookie.setPath("/");
+        response.addCookie(cookie);
+      }
+    }
+  }
+  //Estrazione path senza context root
   static String getPath(HttpServletRequest request) {
     return request.getRequestURI().substring(request.getContextPath().length()).toLowerCase();
   }

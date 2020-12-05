@@ -28,6 +28,15 @@
   </head>
   <body>
     <div id="app">
+      <div v-if="loading" id="loader" >
+        <div class="back-overlay"></div>
+        <div class="loader text-center">
+          <div id="loading-spinner" class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+          <p><strong class="text-primary">Loading...</strong></p>
+        </div>
+      </div>
       <nav id="navbar" class="navbar navbar-expand-md sticky-top py-1 site-header">
         <img src="./assets/img/android-chrome-192x192_inverted.png" style="zoom: 20%"> <a class="navbar-brand mx-2" href="#">Ripetizioni</a>
         <button class="navbar-toggler  navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,10 +49,13 @@
           <li class="nav-item mx-2"><a id="navlink-courses" class="nav-link " href="#courses">Corsi</a></li>
           <li class="nav-item mx-2"><a id="navlink-teachers" class="nav-link " href="#teachers">Insegnanti</a></li>
 
-          <li v-if="user" id="userlog" class="nav-item dropdown mx-2">
+          <li v-if="user" id="userlog" class="nav-item dropdown mx-1">
             <a class="nav-link"  id="dropdownMenuUser" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#" ><i class="fas fa-user mx-2"></i>{{user.username}} ({{user.role}})</a>
 
-            <div class="dropdown-menu"  aria-labelledby="dropdownMenuUser">
+            <div class="dropdown-menu dropdown-menu-right"  aria-labelledby="dropdownMenuUser">
+              <div class="dropdown-item text-dark capitalize usermenu-info">{{user.name}} {{user.surname}}</div>
+              <div class="dropdown-item text-dark usermenu-info">{{user.email}}</div>
+              <div class="dropdown-divider"></div>
               <a  id="userhome" class="dropdown-item text-dark pointer" v-on:click.prevent="goToPrivateArea"><i class="fas fa-key mx-2"></i> Area Riservata</a>
               <a  id="logout" class="dropdown-item text-dark pointer" v-on:click.prevent="logoutAction()"><i class="fas fa-power-off mx-2"></i> Logout</a>
             </div>
@@ -191,7 +203,7 @@
       </div>
 </footer>
     </div>
-      <script type="text/javascript" src="./assets/js/ripetizioni.js" defer></script>
+      <script type="text/javascript" src="./assets/js/areapubblica.js" defer></script>
 <script type="text/javascript" defer>
 
 </script>

@@ -19,8 +19,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 
-@WebServlet(name="GetTeachers", urlPatterns = "/servlets/GetTeachers")
-public class GetTeacherServlet extends HttpServlet {
+@WebServlet(name="GetTeachers", urlPatterns = "/servlets/teachers")
+public class TeacherServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
       processRequestGet(req, resp);
@@ -31,6 +31,13 @@ public class GetTeacherServlet extends HttpServlet {
       processRequestPost(req, resp);
     }
 
+  /**
+   * Restituisce la lista insegnanti
+   * @param request
+   * @param response
+   * @throws javax.servlet.ServletException
+   * @throws IOException
+   */
     private void processRequestGet (HttpServletRequest request, HttpServletResponse response) throws javax.servlet.ServletException, IOException{
       response.setContentType("application/json");
       Gson gson = new Gson();
@@ -81,11 +88,20 @@ public class GetTeacherServlet extends HttpServlet {
       }
     }
 
+
+  /**
+   * Inserimento insegnante (ammesso solo per amministratori)
+   *
+   * @param request
+   * @param response
+   * @throws javax.servlet.ServletException
+   * @throws IOException
+   */
     private void processRequestPost (HttpServletRequest request, HttpServletResponse response)throws javax.servlet.ServletException, IOException{
       response.setContentType("application/json");
       Gson gson = new Gson();
       GenericResponse gresp= new GenericResponse();
-      String regexAlphabetic = "^[a-zA-Z ]+$";
+      String regexAlphabetic = "^[A-zÀ-ú ]+$";
       String regexNumeric = "^[0-9]+$";
       Pattern patternAlphabetic = Pattern.compile(regexAlphabetic);
       Pattern patternNumeric = Pattern.compile(regexNumeric);
@@ -147,9 +163,6 @@ public class GetTeacherServlet extends HttpServlet {
         response.getWriter().write(gson.toJson(gresp));
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       }
-
-
-
     }
   }
 

@@ -5,10 +5,7 @@ import it.unito.sabatelli.ripetizioni.model.GenericResponse;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.*;
 import java.io.IOException;
 
 @WebServlet(name="Logout", urlPatterns = "/servlets/logout")
@@ -31,6 +28,7 @@ public class LogoutServlet extends HttpServlet {
     HttpSession s=request.getSession();
     s.removeAttribute("user");
     s.invalidate();
+    handleLogOutResponseCookie(request, response);
 
     if(request.getSession(false)==null){
       gr.setResult(true);
@@ -42,6 +40,16 @@ public class LogoutServlet extends HttpServlet {
       gr.setErrorOccurred("Impossibile eseguire il logout");
       response.getWriter().write(gson.toJson(gr));
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  private void handleLogOutResponseCookie(HttpServletRequest request, HttpServletResponse response) {
+    Cookie[] cookies = request.getCookies();
+    for (Cookie cookie : cookies) {
+      cookie.setMaxAge(0);
+      cookie.setValue(null);
+      cookie.setPath("/");
+      response.addCookie(cookie);
     }
   }
 }

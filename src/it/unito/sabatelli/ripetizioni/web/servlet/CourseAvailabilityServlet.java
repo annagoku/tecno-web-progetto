@@ -69,7 +69,9 @@ public class CourseAvailabilityServlet extends HttpServlet {
     }
     catch (SQLException e) {
       e.printStackTrace();
-      response.getWriter().write("{message: \"Impossibile reperire i dati\"}");
+      gr.setResult(false);
+      gr.setErrorOccurred("Impossibile reperire i dati");
+      response.getWriter().write(gson.toJson(gr));
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
 

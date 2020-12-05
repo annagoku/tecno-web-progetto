@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import it.unito.sabatelli.ripetizioni.dao.Dao;
 import it.unito.sabatelli.ripetizioni.model.CatalogItem;
 import it.unito.sabatelli.ripetizioni.model.Course;
+import it.unito.sabatelli.ripetizioni.model.GenericResponse;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -29,7 +30,7 @@ public class LessonCatalogServlet extends HttpServlet {
     //setto il content Type
     response.setContentType("application/json");
     Gson gson = new Gson();
-
+    GenericResponse ge = new GenericResponse();
     try {
 
       Dao dao = (Dao) request.getServletContext().getAttribute(Dao.DAONAME);
@@ -42,7 +43,9 @@ public class LessonCatalogServlet extends HttpServlet {
     }
     catch (SQLException e) {
       e.printStackTrace();
-      response.getWriter().write("{message: \"Impossibile reperire i dati\"}");
+      ge.setErrorOccurred("Impossibile reperire i dati");
+      ge.setResult(false);
+      response.getWriter().write(gson.toJson(ge));
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
 

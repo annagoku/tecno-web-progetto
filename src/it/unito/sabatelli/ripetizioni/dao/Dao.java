@@ -66,6 +66,10 @@ public class Dao {
           "AND LESSONS.DAYCODE = day.daycode and lessons.statecode = lesson_state.code and USER.IDUSER = ? AND SLOTHOURS.idslot=? "+
           "AND DAY.daycode = ? AND LESSONS.statecode in (1,2)";
 
+  public static String QUERY_GETLESSON = "SELECT LESSONS.id, LESSONS.statecode , lesson_state.name as state_text, USER.iduser " +
+          "FROM (USER JOIN LESSONS JOIN LESSON_STATE) " +
+          "WHERE LESSONS.id = ? AND LESSONS.IDUSER=USER.IDUSER and lessons.statecode = lesson_state.code ";
+
   public static String UPDATE_LESSON_STATE = "UPDATE LESSONS SET STATECODE=? WHERE ID=?";
 
   public static String QUERY_COURSE_AVAILABILITY = "select  t.idslot, t.startslot, t.endslot, " +
@@ -374,6 +378,54 @@ public class Dao {
     }
     return l;
   }
+
+  public Lesson getLesson (String idlesson) throws Exception {
+    checkInit();
+    Connection conn = null;
+    Lesson l = null;
+    ResultSet rs = null;
+    try {
+      conn = getConnection();
+      if (conn != null) {
+        System.out.println("Connected to the database test");
+      }
+
+      PreparedStatement ps = conn.prepareStatement(QUERY_GETLESSON);
+      ps.setInt(1, Integer.parseInt(idlesson));
+
+      rs = ps.executeQuery();
+
+
+      boolean found = false;
+      while (rs.next()) {
+        if(found) {
+          throw new Exception("Errore lezioni duplicate");
+        }
+        l = new Lesson();
+        l.setId(rs.getInt("id"));
+        l.setState(new LessonState(rs.getInt("statecode"), rs.getString("state_text")));
+        User u = new User();
+        u.setId(""+rs.getInt("iduser"));
+        l.setUser(u);
+        found = true;
+      }
+      rs.close();
+
+
+    }finally {
+      if(rs != null) {
+        try {
+          rs.close();
+        }catch (SQLException e) {
+          e.printStackTrace();
+        }
+      }
+      safeCloseConnection(conn);
+    }
+    return l;
+  }
+
+
   //Caricamento delle lezioni di un user
   public ArrayList<Lesson> loadLesson (String iduser, String role) throws SQLException {
     checkInit();

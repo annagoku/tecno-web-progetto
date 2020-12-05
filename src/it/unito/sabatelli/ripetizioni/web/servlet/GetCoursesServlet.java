@@ -142,7 +142,7 @@ public class GetCoursesServlet extends HttpServlet {
       else {
         gresp.setResult(false);
         gresp.setErrorOccurred("Errore nel reperimento dei dati");
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         response.getWriter().write(gson.toJson(gresp));
         return;
       }

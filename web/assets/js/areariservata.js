@@ -1,5 +1,5 @@
 //URL della pagina corrente
-var SERVERURL = window.location.href;
+var SERVERURL = window.location.href.substr(0,window.location.href.indexOf(";jsessionid"));
 var HOMEURL = SERVERURL.substr(0, SERVERURL.indexOf("private"));
 var SESSION_DURATION = 30; //minutes
 
@@ -17,6 +17,7 @@ $.ajaxSetup({
 var areaRiservataApp= new Vue ({
     el:"#app",
     data: {
+        loading: false,
         sessionId: null,
         user: null,
         days: [
@@ -45,6 +46,8 @@ var areaRiservataApp= new Vue ({
             userSelected: '-',
             courseSelected: '-',
             errorMessage: null,
+            errorMessageCourse: null,
+            errorMessageUser: null,
             reservationSelected: null
         },
         modalCheckReservation: {
@@ -114,11 +117,16 @@ var areaRiservataApp= new Vue ({
         }
     },
     mounted: function () {
-        this.sessionId = this.getSessionIdLocal();
+        this.sessionId = this.getSessionId();
 
         this.getSessionInfo();
     },
     methods: {
+        getSessionId: function () {
+            if(window.location.href.indexOf("=") > 0)
+                return window.location.href.substr(window.location.href.indexOf("=")+1, window.location.href.length);
+            return null;
+        },
 //AREA RISERVATA STUDENTE
 //recupera da back end le lezioni prenotate dall'utente
         getLessons: function () {
@@ -126,13 +134,11 @@ var areaRiservataApp= new Vue ({
             $.get(this.encodeURL(SERVERURL + 'lessons',''), function (data) {
                 //se ok
                 self.lessonsMatrix = data;
-                self.updateSessionId();
-                console.log("Lessons Matrix -> " + JSON.stringify(data));
-            }).fail(function () {
-                //se errore
-                self.updateSessionId();
-                this.showAlert("Impossibile reperire le informazioni delle lezioni!");
 
+                console.log("Lessons Matrix -> " + JSON.stringify(data));
+            }).fail(function (xhr) {
+                //se errore
+                self.checkServerError(xhr, true);
             });
         },
 
@@ -153,7 +159,7 @@ var areaRiservataApp= new Vue ({
                     break;
                 case "logout":
                     this.invalidateSession();
-                    window.location = HOMEURL;
+                    window.location = this.encodeURL(HOMEURL);
                     break;
                 default:
                     break;
@@ -161,40 +167,19 @@ var areaRiservataApp= new Vue ({
             this.alert.action = "none";
             $("#alertDialog").modal('hide');
         },
-        getSessionIdLocal : function() {
-            var sessionIDLocal = localStorage.getItem("jsessionid");
-            var sessionLastUpdate = localStorage.getItem("jsessionid_lastupdate");
-            if(sessionIDLocal == null) {
-                localStorage.removeItem("jsessionid_lastupdate");
-                return null;
-            }
-            if(sessionLastUpdate == null) {
-                // non dovrebbe succedere ma metto lo stesso come controllo
-                localStorage.removeItem("jsessionid");
-                return null;
-            }
-            var now = new Date();
-            if(new Date(sessionLastUpdate + SESSION_DURATION*60000)<now) {
-                // sessione scaduta
-                localStorage.removeItem("jsessionid_lastupdate");
-                localStorage.removeItem("jsessionid");
-                return null;
-            }
-            return sessionIDLocal;
-        },
         checkServerError : function (xhr, showAlert) {
+            this.loading = false;
             var errorMessage = "Si è verificato un errore generico (status "+xhr.status+")";
             console.log("checkServerError -> status -> "+xhr.status);
             if(xhr.status == 440) {
                 this.showAlert("La sessione è scaduta. Verrete rediretti sulla pagina di login", "logout");
                 return null;
             }
-            this.updateSessionId();
             if(xhr.status >= 400) {
                 try {
                     var json = JSON.parse(xhr.responseText);
                     if(json.errorOccurred) {
-                        errorMessage = "Si è verificato un errore. "+json.errorOccurred;
+                        errorMessage = json.errorOccurred;
                     }
                 }
                 catch (e) {
@@ -206,19 +191,7 @@ var areaRiservataApp= new Vue ({
                 this.showAlert(errorMessage);
             return  errorMessage;
         },
-        updateSessionId : function (newValue) {
-            if(this.getSessionIdLocal() != null) {
-                if(newValue) {
-                    this.sessionId = newValue;
-                    localStorage.setItem("jsessionid", newValue);
-                }
-                localStorage.setItem("jsessionid_lastupdate", new Date());
-            }
-
-        },
         invalidateSession: function () {
-            localStorage.removeItem("jsessionid_lastupdate");
-            localStorage.removeItem("jsessionid");
             this.sessionId = null;
             this.user = null;
         },
@@ -227,14 +200,13 @@ var areaRiservataApp= new Vue ({
 //recupera le informazioni sull'utente che ha fatto login
         getSessionInfo: function () {
             var self = this;
+            this.loading = true;
             $.get(this.encodeURL(SERVERURL + 'userlog',''), function (data) {
                 //se ok
                 self.user = data.user;
-                self.sessionId = data.sessionId;
-                self.updateSessionId(data.sessionId);
-
+                self.loading=false;
                 if (self.user == null) {
-                    window.location = HOMEURL;
+                    window.location = self.encodeURL(HOMEURL);
                     return;
                 }
                 if(self.user.role === "student") {
@@ -245,6 +217,7 @@ var areaRiservataApp= new Vue ({
                 }
                 console.log("GetSessionInfo -> " + JSON.stringify(data));
             }).fail(function () {
+                self.loading=false;
                 //se errore
                 this.showAlert("Impossibile reperire informazioni utente! Verrete rediretti sulla pagina di login", "logout");
 
@@ -282,9 +255,9 @@ var areaRiservataApp= new Vue ({
         showModalLesson: function (k) {
             this.modalLesson.selectedLesson = k;
             if (this.modalLesson.selectedLesson.state.code == 1) {
-                this.modalLesson.errorMessage = null;
                 this.modalLesson.wantConfirm = false;
                 this.modalLesson.wantCancel = false;
+                this.modalLesson.errorMessage = null;
                 $('#modalState').modal();
             }
         },
@@ -314,12 +287,14 @@ var areaRiservataApp= new Vue ({
             } else {
                 statecode = 3;
             }
+            self.loading=true;
             $.post(this.encodeURL(SERVERURL + 'lessons',''), {
                 idLesson: this.modalLesson.selectedLesson.id,
                 action: "modificastato",
                 stateLesson: statecode
             }, function (data) {
-                self.updateSessionId();
+                self.loading=false;
+
                 console.log("CheckChangeState -> " + JSON.stringify(data));
                 //se ko
                 if (!data.result) {
@@ -330,6 +305,7 @@ var areaRiservataApp= new Vue ({
                 }
 
             }).fail(function (xhr) {
+                self.loading=false;
                 self.modalLesson.errorMessage = self.checkServerError(xhr, false);
 
             });
@@ -340,10 +316,13 @@ var areaRiservataApp= new Vue ({
             this.modalCatalog.errorMessage = null;
             this.modalCatalog.catalog = [];
             var self = this;
+            self.loading=true;
             $.get(this.encodeURL(SERVERURL + 'catalog',''), function (data) {
                 //se ok
+                self.loading=false;
+
                 self.modalCatalog.catalog = data;
-                self.updateSessionId();
+
                 console.log("Lessons catalog -> " + JSON.stringify(data));
                 $("#modalCatalog").modal('show');
             }).fail(function (xhr) {
@@ -356,13 +335,18 @@ var areaRiservataApp= new Vue ({
 //apertura di una modale con selezione della materia di interesse e visualizzazione delle disponibilità
         showModalNewReservation: function () {
             var self = this;
+            this.modalNewReservation.userSelected = '-';
             this.modalNewReservation.courseSelected = '-';
             this.modalNewReservation.courses = [];
             this.modalNewReservation.matrix = null;
             this.modalNewReservation.errorMessage = null;
+            this.modalNewReservation.errorMessageCourse = null;
+            this.modalNewReservation.errorMessageUser = null;
+            self.loading=true;
             $.get(this.encodeURL(HOMEURL + "public/courses","?filter=home"), function (data) {
                 //se ok
-                self.updateSessionId();
+                self.loading=false;
+
                 self.modalNewReservation.courses = data;
                 $('#modalNew').modal('show');
                 console.log("GetCourses -> " + JSON.stringify(data));
@@ -379,26 +363,47 @@ var areaRiservataApp= new Vue ({
             var idUser = this.modalNewReservation.userSelected;
             var self = this;
             console.log("Selected course code -> " + codeMat);
+            this.modalNewReservation.errorMessage = null;
 
             if(this.user.role == 'administrator') {
                 console.log("Selected user id -> " + idUser);
-                if((codeMat == null || codeMat == '-') || (idUser == null || idUser == '-')) {
-                    this.modalNewReservation.matrix = [];
+                var result = true;
+                if(codeMat === null || codeMat === '-') {
+                    this.modalNewReservation.matrix = null;
+                    result = false;
+                }
+                else {
+                    this.modalNewReservation.errorMessageCourse = null;
+                }
+                if((idUser === null || idUser === '-')) {
+                    this.modalNewReservation.matrix = null;
+                    result = false;
+                }
+                else {
+                    this.modalNewReservation.errorMessageUser = null;
+                }
+                if(!result) {
                     return;
                 }
             }
             else {
                 //UTENTE
-                if((codeMat == null || codeMat == '-') ) {
-                    this.modalNewReservation.matrix = [];
+                if(codeMat === null || codeMat === '-') {
+                    console.log("course not selected");
+                    this.modalNewReservation.matrix = null;
                     return;
+                }
+                else {
+                    this.modalNewReservation.errorMessageCourse = null;
                 }
             }
 
+            self.loading=true;
             $.get(this.encodeURL(SERVERURL + 'courseavailability','?courseCode=' + codeMat), function (data) {
+                self.loading=false;
                 console.log("Select availability course -> " + JSON.stringify(data));
                 self.modalNewReservation.matrix = data;
-                self.updateSessionId();
+
             }).fail(function (xhr) {
                 console.log("Retrieve course availability " + xhr.status);
                 self.modalNewReservation.errorMessage = self.checkServerError(xhr, false);
@@ -426,14 +431,37 @@ var areaRiservataApp= new Vue ({
         },
 //controlla e gestisce eventuali sovrapposizioni tra nuova prenotazione selezionata e prenotazioni esistenti
         checkFeasibilityNewReservation : function(){
-            $('#modalNew').modal('hide');
+            this.modalNewReservation.errorMessage = null;
+            this.modalNewReservation.errorMessageUser = null;
+            this.modalNewReservation.errorMessageCourse = null;
             console.log("checkFeasibility");
             var j;
             var i;
 
+            var result = true;
+            // check input
+            if(this.user.role == 'administrator') {
+                if(this.modalNewReservation.userSelected == '-') {
+                    this.modalNewReservation.errorMessageUser = "Selezionare un utente";
+                    result = false;
+                }
+            }
+            if(this.modalNewReservation.courseSelected == '-') {
+                this.modalNewReservation.errorMessageCourse = "Selezionare un corso";
+                result = false;
+            }
+
+
+            if(!result) {
+                return ;
+            }
+
             this.modalCheckReservation.feedbackMessage=null;
             if(this.modalNewReservation.reservationSelected) {
+                $('#modalNew').modal('hide');
                 if(this.user.role == 'student') {
+
+
                     i = this.modalNewReservation.reservationSelected.slot.id - 1;
                     j = this.modalNewReservation.reservationSelected.day.daycode - 1;
                     console.log("checkFeasibility i: "+i+", j: "+j);
@@ -468,27 +496,35 @@ var areaRiservataApp= new Vue ({
                 }
 
             }else{
-                this.modalNewReservation.errorMessage="Seleziona un lezione da prenotare o annulla";
+                this.modalNewReservation.errorMessage="Seleziona una lezione da prenotare o annulla";
             }
         },
 
         switchTab: function(tab) {
+            var self = this;
             switch (tab) {
                 case 'courses':
-                    this.tabActive="courses";
-                    this.getCourses(null, false);
+
+                    this.getCourses(function () {
+                        self.tabActive="courses";
+                        }, false);
                     break;
                 case 'teachers':
-                    this.tabActive="teachers";
-                    this.getTeachersAdmin(null);
+                    this.getTeachersAdmin(function () {
+                        self.tabActive="teachers";
+                    });
                     break;
                 case 'associations':
-                    this.tabActive="associations";
-                    this.getAssociationsAdmin();
+                    this.getAssociationsAdmin(function () {
+                        self.tabActive="associations";
+
+                    });
                     break;
                 case 'lessons':
-                    this.tabActive="lessons";
-                    this.getLessonAdmin()
+
+                    this.getLessonAdmin(function () {
+                        self.tabActive="lessons";
+                    });
                     break;
 
             }
@@ -501,12 +537,15 @@ var areaRiservataApp= new Vue ({
             $('#modalCheckFeasibility').modal('hide');
             var self=this;
             this.modalNewReservation.reservationSelected.selected = false;
+            self.loading=true;
             $.post(this.encodeURL(SERVERURL + 'newReservation',''), {
                 infoCatalogItemSelected: JSON.stringify(this.modalNewReservation.reservationSelected),
             }, function (data) {
+                self.loading=false;
+
                 console.log("CheckNewReservation -> " + JSON.stringify(data));
                 //se ko
-                self.updateSessionId();
+
                 if (!data.result) {
                     self.showAlert(data.errorMessage);
                 } else {
@@ -522,11 +561,13 @@ var areaRiservataApp= new Vue ({
             console.log("saveNewReservationAdmin");
             var self=this;
             this.modalNewReservation.reservationSelected.selected = false;
+            self.loading=true;
             $.post(this.encodeURL(SERVERURL + 'newReservation',''), {
                 infoCatalogItemSelected: JSON.stringify(this.modalNewReservation.reservationSelected),
                 userId: this.modalNewReservation.userSelected
             }, function (data) {
-                self.updateSessionId();
+                self.loading=false;
+
                 console.log("CheckNewReservation -> " + JSON.stringify(data));
                 //se ko
                 if (!data.result) {
@@ -540,17 +581,22 @@ var areaRiservataApp= new Vue ({
             });
         },
         goToHome: function () {
-            document.location.href = HOMEURL;
+            document.location.href = this.encodeURL(HOMEURL);
         },
 //Logout utente e ritorno alla home
         logoutAction: function () {
             var self = this;
+            self.loading=true;
             $.get(this.encodeURL(SERVERURL + 'logout',''), function (data) {
                 //se ok
+                self.loading=false;
+
                 self.invalidateSession();
                 console.log("Logout -> " + JSON.stringify(data));
                 if (data.result == true) {
-                    document.location.href = HOMEURL;
+                    var home = self.encodeURL(HOMEURL);
+                    console.log("logout successful... redirecting to home "+home)
+                    document.location.href = home;
                 } else {
                     self.showAlert(data.errorMessage);
                 }
@@ -564,9 +610,11 @@ var areaRiservataApp= new Vue ({
             var path = this.encodeURL(HOMEURL + 'public/courses' , onlyactive ? '?filter=home' : '?filter=admin');
             var self = this;
 
+            self.loading=true;
             $.get(path, function (data) {
                 //se ok
-                self.updateSessionId();
+                self.loading=false;
+
                 self.courseAdmin=data;
                 console.log("courseadmin -> " + JSON.stringify(data));
                 if(callback)
@@ -581,9 +629,11 @@ var areaRiservataApp= new Vue ({
 
         getTeachersAdmin: function (callback) {
             var self=this;
+            self.loading=true;
             $.get(this.encodeURL(HOMEURL + 'public/teachers','?filter=admin'), function (data) {
                 //se ok
-                self.updateSessionId();
+                self.loading=false;
+
                 self.teacherAdmin=data;
                 console.log("teacheradmin -> " + JSON.stringify(data));
                 if(callback)
@@ -594,38 +644,47 @@ var areaRiservataApp= new Vue ({
             });
         },
 
-        getAssociationsAdmin: function () {
+        getAssociationsAdmin: function (callback) {
             var self=this;
+            self.loading=true;
 
             $.get(this.encodeURL(SERVERURL + 'associationsadmin',''), function (data) {
                 //se ok
-                self.updateSessionId();
+                self.loading=false;
+
                 self.associationsAdmin=data;
                 console.log("courses & teacheradmin -> " + JSON.stringify(data));
-
+                if(callback)
+                    callback();
             }).fail(function (xhr) {
                 self.checkServerError(xhr, true);
             });
         },
 
-        getLessonAdmin: function () {
+        getLessonAdmin: function (callback) {
             var self=this;
 
+            self.loading=true;
 
             $.get(this.encodeURL(SERVERURL + 'lessons',''), function (data) {
                 //se ok
+                self.loading=false;
+
                 self.lessonsAdmin=data;
                 console.log("Lessons -> " + JSON.stringify(data));
-                self.updateSessionId();
+                if(callback)
+                    callback();
             }).fail(function (xhr) {
                 self.checkServerError(xhr, true);
             });
         },
         getUserAdmin: function (callback) {
             var self = this;
+            self.loading=true;
             $.get(this.encodeURL(SERVERURL + 'userlist',''), function (data) {
                 //se ok
-                self.updateSessionId();
+                self.loading=false;
+
                 console.log("user List -> " + JSON.stringify(data));
                 self.userAdmin=data;
                 if(callback)
@@ -645,10 +704,10 @@ var areaRiservataApp= new Vue ({
                     this.getTeachersAdmin(null);
                     break;
                 case 3:
-                    this.getAssociationsAdmin();
+                    this.getAssociationsAdmin(null);
                     break;
                 case 4:
-                    this.getLessonAdmin();
+                    this.getLessonAdmin(null);
                     break;
             }
         },
@@ -683,6 +742,10 @@ var areaRiservataApp= new Vue ({
                     var self=this;
                     this.modalNewReservation.courseSelected = '-';
                     this.modalNewReservation.userSelected = '-';
+                    this.modalNewReservation.errorMessage = null;
+                    this.modalNewReservation.errorMessageCourse = null;
+                    this.modalNewReservation.errorMessageUser = null;
+
                     this.modalNewReservation.matrix = null;
                     this.getUserAdmin(
                         function () {
@@ -716,19 +779,21 @@ var areaRiservataApp= new Vue ({
 
         checkInputNewCourse: function(e){
             e.preventDefault();
+            var result = true;
 
             this.modalInsertCourse.errorMessageCode=null;
             this.modalInsertCourse.errorMessageName=null;
             if(this.modalInsertCourse.code==null ||  !REGEXP_COURSE_CODE.test(this.modalInsertCourse.code)){
                 this.modalInsertCourse.errorMessageCode="Campo obbligatorio di 3 caratteri solo alfanumerici";
-                return;
+                result = false;
             }
 
             if(this.modalInsertCourse.name==null|| !REGEXP_COURSE_NAME.test(this.modalInsertCourse.name)){
                 this.modalInsertCourse.errorMessageName="Campo obbligatorio. Inserire solo caratteri alfanumerici";
-                return;
+                result = false;
             }
-            else{
+
+            if(result) {
                 this.insertNewCourseAdmin();
             }
 
@@ -737,10 +802,12 @@ var areaRiservataApp= new Vue ({
             var self=this;
 
             this.modalInsertCourse.errorMessageServer=null;
+            self.loading=true;
             $.post(this.encodeURL(HOMEURL + 'public/courses',''), {
                 newcode: this.modalInsertCourse.code, newname: this.modalInsertCourse.name, newimage: this.modalInsertCourse.image
             }, function (data) {
-                self.updateSessionId();
+                self.loading=false;
+
                 console.log("InsertNewCourse -> " + JSON.stringify(data));
                 //se ko
                 self.response=data;
@@ -760,8 +827,9 @@ var areaRiservataApp= new Vue ({
 
         checkInputNewTeacher: function(e){
             e.preventDefault();
-            var expressionAlphabetic = new RegExp('^[A-Za-z ]+$','i');
+            var expressionAlphabetic = new RegExp('^[A-zÀ-ú ]+$','i');
             var expressionNumber=new RegExp('^[0-9]+$','i');
+            var result = true;
             this.modalInsertTeacher.errorMessageBadge=null;
             this.modalInsertTeacher.errorMessageName=null;
             this.modalInsertTeacher.errorMessageSurname=null;
@@ -770,19 +838,19 @@ var areaRiservataApp= new Vue ({
 
             if(this.modalInsertTeacher.badge==null || this.modalInsertTeacher.badge.length!=6  || !expressionNumber.test(this.modalInsertTeacher.badge)){
                 this.modalInsertTeacher.errorMessageBadge="Campo obbligatorio di 6 caratteri numerici";
-                return;
+                result=false;
             }
 
             if(this.modalInsertTeacher.name==null || !expressionAlphabetic.test(this.modalInsertTeacher.name)){
                 this.modalInsertTeacher.errorMessageName="Campo obbligatorio. Inserire solo caratteri alfabetici";
-                return;
+                result=false;
             }
             if(this.modalInsertTeacher.surname==null|| !expressionAlphabetic.test(this.modalInsertTeacher.surname)){
                 this.modalInsertTeacher.errorMessageSurname="Campo obbligatorio. Inserire solo caratteri alfabetici";
-                return;
+                result=false;
             }
 
-            else{
+            if(result){
                 this.insertNewTeacherAdmin();
             }
         },
@@ -790,13 +858,15 @@ var areaRiservataApp= new Vue ({
             var self=this;
 
             this.modalInsertTeacher.errorMessageServer=null;
+            self.loading=true;
             $.post(this.encodeURL(HOMEURL + 'public/teachers','?filter=admin'), {
                 newbadge: this.modalInsertTeacher.badge,
                 newname: this.modalInsertTeacher.name,
                 newsurname: this.modalInsertTeacher.surname,
                 newavatar: this.modalInsertTeacher.avatar
             }, function (data) {
-                self.updateSessionId();
+                self.loading=false;
+
                 console.log("InsertNewTeacher -> " + JSON.stringify(data));
                 //se ko
                 self.response=data;
@@ -816,10 +886,14 @@ var areaRiservataApp= new Vue ({
             var badge = e.target.value;
             var self = this;
             if(badge != '-') {
+                this.modalInsertAssociation.errorMessageSelectionTeacher=null;
+
                 this.modalInsertAssociation.teacherSelected=badge;
+                self.loading=true;
                 $.get(this.encodeURL(SERVERURL + 'courseList','?badge=' + badge), function (data) {
                     console.log("Select new course for teacher selected -> " + JSON.stringify(data));
-                    self.updateSessionId();
+                    self.loading=false;
+
                     self.modalInsertAssociation.courseToMatch = data;
 
                 }).fail(function (xhr) {
@@ -830,36 +904,51 @@ var areaRiservataApp= new Vue ({
             console.log("Selected teacher badge -> " + badge);
         },
 
+        onSelectTeacherCourse : function(e) {
+            var course = e.target.value;
+            if(course != '-') {
+                this.modalInsertAssociation.errorMessageSelectionCourse = null;
+            }
+        },
+
         saveNewAssociation: function (e) {
             e.preventDefault();
             this.modalInsertAssociation.errorMessageSelectionTeacher=null;
             this.modalInsertAssociation.errorMessageSelectionCourse=null;
             var self=this;
+            var result = true;
             if(this.modalInsertAssociation.teacherSelected==null || this.modalInsertAssociation.teacherSelected== '-'){
                 this.modalInsertAssociation.errorMessageSelectionTeacher="Selezionare un'insegnate";
-                return;
+                result = false;
             }
             if(this.modalInsertAssociation.courseSelected==null || this.modalInsertAssociation.courseSelected== '-'){
                 this.modalInsertAssociation.errorMessageSelectionCourse="Selezionare un corso tra quelli proposti";
-                return;
+                result = false;
             }
-            $.post(this.encodeURL(SERVERURL + 'courselist',''), {
-                badgeNumber: this.modalInsertAssociation.teacherSelected,
-                codCourse: this.modalInsertAssociation.courseSelected
-            }, function (data) {
-                self.updateSessionId();
-                console.log("InsertNewAssociation -> " + JSON.stringify(data));
-                //se ko
-                self.response=data;
-                if (!self.response.result) {
-                    self.modalInsertAssociation.errorMessageServer=self.response.errorOccurred;
-                } else {
-                    $('#insertAssociation').modal('hide');
-                    self.getAssociationsAdmin();
-                }
-            }).fail(function (xhr) {
-                self.modalInsertAssociation.errorMessageServer = self.checkServerError(xhr, false);
-            });
+            if(result) {
+
+                self.loading=true;
+                $.post(this.encodeURL(SERVERURL + 'courselist',''), {
+                    badgeNumber: this.modalInsertAssociation.teacherSelected,
+                    codCourse: this.modalInsertAssociation.courseSelected
+                }, function (data) {
+                    self.loading=false;
+
+                    console.log("InsertNewAssociation -> " + JSON.stringify(data));
+                    //se ko
+                    self.response=data;
+                    if (!self.response.result) {
+                        self.modalInsertAssociation.errorMessageServer=self.response.errorOccurred;
+                    } else {
+                        $('#insertAssociation').modal('hide');
+                        self.getAssociationsAdmin();
+                    }
+                }).fail(function (xhr) {
+                    self.modalInsertAssociation.errorMessageServer = self.checkServerError(xhr, false);
+                });
+
+
+            }
         },
         changeStateAssociation : function (tc) {
             this.modalDeleteAssociation.associationSelected=tc;
@@ -870,10 +959,12 @@ var areaRiservataApp= new Vue ({
         },
         saveDeleteAssociation : function () {
             var self=this;
+            self.loading=true;
             $.post(this.encodeURL(SERVERURL + 'deleteassociation',''), {
                 associationToDelete: JSON.stringify(this.modalDeleteAssociation.associationSelected)
             }, function (data) {
-                self.updateSessionId();
+                self.loading=false;
+
                 console.log("Delete association -> " + JSON.stringify(data));
                 //se ko
                 if (!data.result) {
@@ -897,10 +988,12 @@ var areaRiservataApp= new Vue ({
         },
         saveDeleteTeacher : function () {
             var self=this;
+            self.loading=true;
             $.post(this.encodeURL(SERVERURL + 'deleteteacher',''), {
                 teacherToDelete: JSON.stringify(this.modalDeleteTeacher.teacherSelected)
             }, function (data) {
-                self.updateSessionId();
+                self.loading=false;
+
                 console.log("Delete teacher -> " + JSON.stringify(data));
                 //se ko
                 if (!data.result) {
@@ -923,10 +1016,12 @@ var areaRiservataApp= new Vue ({
         },
         saveDeleteCourse : function () {
             var self=this;
+            self.loading=true;
             $.post(this.encodeURL(SERVERURL + 'deletecourse',''), {
                 courseToDelete: JSON.stringify(this.modalDeleteCourse.courseSelected)
             }, function (data) {
-                self.updateSessionId();
+                self.loading=false;
+
                 console.log("Delete course -> " + JSON.stringify(data));
                 //se ko
                 if (!data.result) {
@@ -948,10 +1043,12 @@ var areaRiservataApp= new Vue ({
         },
         saveDeleteReservation : function () {
             var self=this;
+            self.loading=true;
             $.post(this.encodeURL(SERVERURL + 'deletereservation',''), {
                 reservationToDelete: JSON.stringify(this.modalDeleteReservation.reservationSelected)
             }, function (data) {
-                self.updateSessionId();
+                self.loading=false;
+
                 console.log("Delete reservation -> " + JSON.stringify(data));
                 //se ko
                 if (!data.result) {

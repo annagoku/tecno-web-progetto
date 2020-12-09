@@ -177,7 +177,7 @@
             </div>
           </div>
 
-          <!-- MODAL DELETE  TEACHERS ADMIN -->
+          <!-- MODAL DELETE  COURSES ADMIN -->
           <div class="modal" id="deleteCourse" tabindex="-1" role="dialog">
             <div class="modal-dialog" role="document">
               <div class="modal-content">
@@ -192,8 +192,8 @@
                   <small class="text-danger" v-if="modalDeleteTeacher.errorMessage">{{modalDeleteCourse.errorMessage}}</small>
                 </div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
                   <button type="button" class="btn btn-primary" v-on:click="saveDeleteCourse()">Salva</button>
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
                 </div>
               </div>
             </div>
@@ -250,8 +250,9 @@
                   <small class="text-danger" v-if="modalDeleteTeacher.errorMessage">{{modalDeleteTeacher.errorMessage}}</small>
                 </div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
                   <button type="button" class="btn btn-primary" v-on:click="saveDeleteTeacher()">Salva</button>
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
+
                 </div>
               </div>
             </div>
@@ -312,8 +313,8 @@
                   <small class="text-danger" v-if="modalDeleteAssociation.errorMessage">{{modalDeleteAssociation.errorMessage}}</small>
                 </div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
                   <button type="button" class="btn btn-primary" v-on:click="saveDeleteAssociation()">Salva</button>
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
                 </div>
               </div>
             </div>

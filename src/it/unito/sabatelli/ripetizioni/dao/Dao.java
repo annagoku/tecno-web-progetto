@@ -842,10 +842,10 @@ public int saveNewTeacher(String badge, String name, String surname, String avat
         ps.setString(1, c.getCode());
 
         int r = ps.executeUpdate();
-        System.out.println("deleteAssociation--> " + c.getCode()+ "row updated "+r);
+        System.out.println("deleteCourse--> " + c.getCode()+ " row updated "+r);
       }
 
-      PreparedStatement ps = conn.prepareStatement(DELETE_LESSON_ADMIN_DIRECT);
+      PreparedStatement ps = conn.prepareStatement(DELETE_LESSON3_ADMIN);
       ps.setString(1, c.getCode());
 
 

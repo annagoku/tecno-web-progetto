@@ -1,7 +1,7 @@
 //URL della pagina corrente
 var SERVERURL = window.location.href.substr(0,window.location.href.indexOf(";jsessionid"));
 var HOMEURL = SERVERURL.substr(0, SERVERURL.indexOf("private"));
-var SESSION_DURATION = 30; //minutes
+
 
 var REGEXP_COURSE_CODE = new RegExp("^[A-Z0-9]{3}$");
 var REGEXP_COURSE_NAME = new RegExp("^[A-Z].*$");
@@ -592,15 +592,16 @@ var areaRiservataApp= new Vue ({
         logoutAction: function () {
             var self = this;
             self.loading=true;
+            console.log(SERVERURL);
             $.get(this.encodeURL(SERVERURL + 'logout',''), function (data) {
                 //se ok
                 self.loading=false;
 
                 self.invalidateSession();
                 console.log("Logout -> " + JSON.stringify(data));
-                if (data.result == true) {
+                if (data.result === true) {
                     var home = self.encodeURL(HOMEURL);
-                    console.log("logout successful... redirecting to home "+home)
+                    console.log("logout successful... redirecting to home "+home);
                     document.location.href = home;
                 } else {
                     self.showAlert(data.errorMessage);

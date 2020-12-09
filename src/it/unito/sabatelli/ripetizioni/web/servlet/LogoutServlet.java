@@ -24,11 +24,13 @@ public class LogoutServlet extends HttpServlet {
     response.setContentType("application/json");
     Gson gson = new Gson();
     GenericResponse gr= new GenericResponse();
+    System.out.println("entro nella get");
 
     HttpSession s=request.getSession();
     s.removeAttribute("user");
     s.invalidate();
     handleLogOutResponseCookie(request, response);
+    System.out.println("annullo i cookie");
 
     if(request.getSession(false)==null){
       gr.setResult(true);
@@ -45,11 +47,13 @@ public class LogoutServlet extends HttpServlet {
 
   private void handleLogOutResponseCookie(HttpServletRequest request, HttpServletResponse response) {
     Cookie[] cookies = request.getCookies();
-    for (Cookie cookie : cookies) {
-      cookie.setMaxAge(0);
-      cookie.setValue(null);
-      cookie.setPath("/");
-      response.addCookie(cookie);
+    if(cookies!=null) {
+      for (Cookie cookie : cookies) {
+        cookie.setMaxAge(0);
+        cookie.setValue(null);
+        cookie.setPath("/");
+        response.addCookie(cookie);
+      }
     }
   }
 }

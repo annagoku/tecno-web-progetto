@@ -44,6 +44,7 @@ public class ControllerServlet extends HttpServlet {
     }
 
     System.out.println("Controller clientSessionID -> "+clientSessionId);
+    System.out.println("Controller serverSessionID -> "+sessionId);
     //Se gli id non coincidono la sessione è invalidata
     if(clientSessionId != null && !clientSessionId.equalsIgnoreCase(sessionId)) {
       invalidate(request, response);
@@ -102,6 +103,7 @@ public class ControllerServlet extends HttpServlet {
           request.getServletContext().getNamedDispatcher("CourseAvailability").forward(request, response);
           return;
         case "/private/logout":
+
           request.getServletContext().getNamedDispatcher("Logout").forward(request, response);
           return;
 

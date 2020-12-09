@@ -110,6 +110,7 @@ public class LessonsServlet extends HttpServlet {
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
     String json = gson.toJson(gr);
+    System.out.println("Lessons -> Risultato POST -> "+json);
     response.getWriter().write(json);
 
   }

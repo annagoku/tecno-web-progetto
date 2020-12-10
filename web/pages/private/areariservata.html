@@ -544,12 +544,12 @@
             <div class="form-group">
               <label for="coursecode">Codice corso*</label>
               <input type="text" v-model="modalInsertCourse.code" class="form-control" id="coursecode" placeholder="Codice corso" maxlength="3">
-              <template v-if="modalInsertCourse.errorMessageCode!=null"><small class="text-danger">{{modalInsertCourse.errorMessageCode}}</small></template>
+              <template v-if="modalInsertCourse.errorMessageCode"><small class="text-danger">{{modalInsertCourse.errorMessageCode}}</small></template>
             </div>
             <div class="form-group">
               <label for="coursename">Nome corso*</label>
               <input type="text" v-model="modalInsertCourse.name" class="form-control" id="coursename" placeholder="Nome corso">
-              <template v-if="modalInsertCourse.errorMessageName!=null"><small class="text-danger">{{modalInsertCourse.errorMessageName}}</small></template>
+              <template v-if="modalInsertCourse.errorMessageName"><small class="text-danger">{{modalInsertCourse.errorMessageName}}</small></template>
 
             </div>
             <div class="form-group">

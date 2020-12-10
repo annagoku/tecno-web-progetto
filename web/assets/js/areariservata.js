@@ -789,13 +789,14 @@ var areaRiservataApp= new Vue ({
 
             this.modalInsertCourse.errorMessageCode=null;
             this.modalInsertCourse.errorMessageName=null;
+            this.modalInsertCourse.errorMessageServer=null;
             if(this.modalInsertCourse.code==null ||  !REGEXP_COURSE_CODE.test(this.modalInsertCourse.code)){
-                this.modalInsertCourse.errorMessageCode="Campo obbligatorio di 3 caratteri solo alfanumerici";
+                this.modalInsertCourse.errorMessageCode="Campo obbligatorio di 3 caratteri solo alfanumerici maiuscoli";
                 result = false;
             }
 
             if(this.modalInsertCourse.name==null|| !REGEXP_COURSE_NAME.test(this.modalInsertCourse.name)){
-                this.modalInsertCourse.errorMessageName="Campo obbligatorio. Inserire solo caratteri alfanumerici";
+                this.modalInsertCourse.errorMessageName="Campo obbligatorio. Inserire solo caratteri alfanumerici. Il nome deve iniziare con una lettera maiuscola";
                 result = false;
             }
 

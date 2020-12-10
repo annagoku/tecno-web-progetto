@@ -150,6 +150,12 @@
   color:white;
 }
 
+.btn-primary{
+  background-color: #5476bf;
+  border-color: #5476bf;
+  color: white;
+}
+
 .back-overlay {
   position: absolute;
   top: 0;
